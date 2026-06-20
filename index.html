@@ -978,7 +978,9 @@ function requireAdmin(callback){
 }
 
 function openPin(mode,callback){
-  PIN._setMode(mode); PIN._setBuffer(''); PIN._setFirst('');
+  // Never show setup screen — always unlock
+  const safeMode = (mode === 'setup' || mode === 'setup-confirm') ? 'unlock' : mode;
+  PIN._setMode(safeMode); PIN._setBuffer(''); PIN._setFirst('');
   PIN._setCB(callback||null); PIN._setFail(0);
   refreshPinUI();
   document.getElementById('pin-modal').classList.add('show');
@@ -1030,17 +1032,6 @@ function pinSubmit(){
       if(PIN.pendingCallback) PIN.pendingCallback();
     } else {
       pinError(PIN.failCount>=3?'Wrong PIN — too many attempts.':'Wrong PIN.');
-    }
-  } else if(PIN.mode==='setup'){
-    PIN._setFirst(val); PIN._setMode('setup-confirm'); refreshPinUI();
-  } else if(PIN.mode==='setup-confirm'){
-    if(val===PIN.firstEntry){
-      PIN._setup(val); closePin(); updateAdminBadge();
-      updateResultsLockBadge();
-      showToast('PIN set — you are now logged in.');
-      if(PIN.pendingCallback) PIN.pendingCallback();
-    } else {
-      PIN._setFirst(''); PIN._setMode('setup'); pinError("PINs didn't match — try again."); refreshPinUI();
     }
   } else if(PIN.mode==='change-old'){
     if(PIN._verifyOld(val)){PIN._setMode('change-new');refreshPinUI();}
