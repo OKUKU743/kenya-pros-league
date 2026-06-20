@@ -354,8 +354,6 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
       <div class="pin-dot" id="pd1"></div>
       <div class="pin-dot" id="pd2"></div>
       <div class="pin-dot" id="pd3"></div>
-      <div class="pin-dot" id="pd4"></div>
-      <div class="pin-dot" id="pd5"></div>
     </div>
     <div class="pin-error-msg" id="pin-error"></div>
     <div class="pin-keypad">
@@ -493,7 +491,6 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
   <div id="tab-fixtures" class="section">
     <div class="section-header"><div class="section-title">All <span>Fixtures</span></div></div>
     <div class="info-bar">&#x1F3E0; Home team listed left &#xB7; &#x2708;&#xFE0F; Away team listed right. Each team plays home AND away against every group opponent.</div>
-    <div id="upcoming-matches-bar" style="margin-bottom:16px;"></div>
     <div class="stats-filters" style="margin-bottom:14px;">
       <select id="fixture-group-filter" onchange="renderFixturesAll()">
         <option value="all">All Groups</option>
@@ -523,10 +520,7 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
 
   <!-- LEAGUE TABLE -->
   <div id="tab-table" class="section">
-    <div class="section-header">
-      <div class="section-title">League <span>Table</span></div>
-      <button class="btn" style="background:#25D366;font-size:11px;" onclick="shareStandingsWhatsApp()">&#x1F4F2; Share Standings</button>
-    </div>
+    <div class="section-header"><div class="section-title">League <span>Table</span></div></div>
     <div id="table-container"></div>
   </div>
 
@@ -570,64 +564,43 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
     <div class="section-header">
       <div class="section-title">&#x1F465; League <span>Members</span></div>
     </div>
-
-    <!-- Admin add member panel -->
     <div id="members-admin-panel" style="display:none;margin-bottom:22px;">
       <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.25);border-radius:12px;padding:18px;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">Register Member</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
-          <input type="text" id="mem-name" placeholder="Full Name *" maxlength="40"
-            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-          <input type="text" id="mem-nickname" placeholder="Nickname / Tag" maxlength="20"
-            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-          <select id="mem-club"
-            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-            <option value="">&#x2014; Select Club &#x2014;</option>
-          </select>
-          <select id="mem-role"
-            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="text" id="mem-name" placeholder="Full Name *" maxlength="40" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="text" id="mem-nickname" placeholder="Nickname / Tag" maxlength="20" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <select id="mem-club" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">— Select Club —</option></select>
+          <select id="mem-role" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
             <option value="player">&#x26BD; Player</option>
             <option value="admin">&#x1F6E1; Admin</option>
           </select>
         </div>
-        <!-- Contact fields — admin only visibility note -->
-        <div style="background:rgba(229,62,109,0.05);border:1px solid rgba(229,62,109,0.15);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:#E53E6D;letter-spacing:0.5px;">
-          &#x1F512; Contact details below are visible to Admin only
-        </div>
+        <div style="background:rgba(229,62,109,0.05);border:1px solid rgba(229,62,109,0.15);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:#E53E6D;">&#x1F512; Contact details below are visible to Admin only</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
-          <input type="tel" id="mem-phone" placeholder="Phone Number" maxlength="20"
-            style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-          <input type="email" id="mem-email" placeholder="Email Address" maxlength="60"
-            style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="tel" id="mem-phone" placeholder="Phone Number" maxlength="20" style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="email" id="mem-email" placeholder="Email Address" maxlength="60" style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
         </div>
         <button class="btn" onclick="addMember()">+ Register Member</button>
       </div>
     </div>
-
     <div id="members-list"></div>
   </div>
 
   <!-- CHAT -->
   <div id="tab-chat" class="section">
-    <div class="section-header">
-      <div class="section-title">&#x1F4AC; <span>Group Chat</span></div>
-    </div>
+    <div class="section-header"><div class="section-title">&#x1F4AC; <span>Group Chat</span></div></div>
     <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.2);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:70vh;">
-      <!-- Messages area -->
       <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;">
         <div style="text-align:center;color:#4A5A9A;font-size:12px;padding:20px;">Loading messages...</div>
       </div>
-      <!-- Name + input bar -->
       <div style="border-top:1px solid rgba(27,86,245,0.15);padding:12px 16px;background:rgba(0,0,0,0.2);">
         <div id="chat-name-row" style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">
-          <input type="text" id="chat-name-input" placeholder="Your name..." maxlength="20"
-            style="width:160px;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:8px 12px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="text" id="chat-name-input" placeholder="Your name..." maxlength="20" style="width:160px;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:8px 12px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
           <span style="font-size:11px;color:#4A5A9A;letter-spacing:1px;">Set your name before chatting</span>
         </div>
         <div style="display:flex;gap:8px;">
-          <input type="text" id="chat-msg-input" placeholder="Type a message..." maxlength="200"
-            style="flex:1;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;"
-            onkeydown="if(event.key==='Enter')sendChatMessage()">
+          <input type="text" id="chat-msg-input" placeholder="Type a message..." maxlength="200" style="flex:1;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;" onkeydown="if(event.key==='Enter')sendChatMessage()">
           <button class="btn" onclick="sendChatMessage()" style="padding:10px 18px;font-size:13px;">Send</button>
         </div>
       </div>
@@ -636,21 +609,19 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
 
   <!-- ANNOUNCEMENTS -->
   <div id="tab-announcements" class="section">
-    <div class="section-header">
-      <div class="section-title">📢 <span>Announcements</span></div>
-    </div>
+    <div class="section-header"><div class="section-title">&#x1F4E2; <span>Announcements</span></div></div>
     <div id="announcement-admin-panel" style="display:none;margin-bottom:22px;">
       <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.25);border-radius:12px;padding:18px;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">Post Announcement</div>
-        <input type="text" id="ann-title-input" placeholder="Title e.g. Next Match — Saturday 3PM" style="width:100%;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;margin-bottom:10px;">
+        <input type="text" id="ann-title-input" placeholder="Title..." style="width:100%;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;margin-bottom:10px;">
         <textarea id="ann-body-input" placeholder="Details..." rows="3" style="width:100%;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;resize:vertical;margin-bottom:10px;"></textarea>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <select id="ann-type-input" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-            <option value="info">📌 General</option>
-            <option value="match">⚽ Match</option>
-            <option value="result">🏆 Result</option>
-            <option value="warning">⚠️ Warning</option>
-            <option value="celebration">🎉 Celebration</option>
+            <option value="info">&#x1F4CC; General</option>
+            <option value="match">&#x26BD; Match</option>
+            <option value="result">&#x1F3C6; Result</option>
+            <option value="warning">&#x26A0;&#xFE0F; Warning</option>
+            <option value="celebration">&#x1F389; Celebration</option>
           </select>
           <button class="btn" onclick="postAnnouncement()">Post</button>
         </div>
@@ -661,6 +632,95 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
 
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCtZHFhuy768Rp4trdsAf9lf3OeakbhliY",
+  authDomain: "kenya-pros-league.firebaseapp.com",
+  projectId: "kenya-pros-league",
+  storageBucket: "kenya-pros-league.firebasestorage.app",
+  messagingSenderId: "839938362376",
+  appId: "1:839938362376:web:00d9052cd5136e274295bd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const DOC = doc(db, 'tournament', 'state');
+
+// ── SYNC STATUS UI ──
+function setSyncStatus(status){
+  const el = document.getElementById('sync-status');
+  if(!el) return;
+  const map = {
+    live:    {text:'🟢 Live', color:'#22C55E'},
+    saving:  {text:'⏳ Saving...', color:'#F0B429'},
+    offline: {text:'🔴 Offline', color:'#E53E6D'},
+    loading: {text:'⏳ Loading...', color:'#7C9EFF'},
+  };
+  const cfg = map[status] || map.offline;
+  el.textContent = cfg.text;
+  el.style.color = cfg.color;
+}
+
+// ── SAVE TO FIRESTORE ──
+window._fbSave = async function(){
+  setSyncStatus('saving');
+  try {
+    await setDoc(DOC, { data: JSON.stringify(S), updatedAt: Date.now() });
+    setSyncStatus('live');
+  } catch(e) {
+    console.error('Save failed:', e);
+    setSyncStatus('offline');
+    // fallback to localStorage
+    try { localStorage.setItem('kpl_v2_backup', JSON.stringify(S)); } catch(_){}
+  }
+};
+
+// ── REAL-TIME LISTENER ──
+let _firstLoad = true;
+onSnapshot(DOC, (snap) => {
+  if(!snap.exists()){
+    // No data yet — push initial state
+    if(_firstLoad){
+      _firstLoad = false;
+      S.teams = [...INITIAL];
+      window._fbSave();
+      renderAll();
+      setSyncStatus('live');
+    }
+    return;
+  }
+  try {
+    const remote = JSON.parse(snap.data().data);
+    if(remote && typeof remote === 'object'){
+      S = remote;
+      S.teams = Array.isArray(S.teams) ? S.teams : [...INITIAL];
+      S.fixtures = Array.isArray(S.fixtures) ? S.fixtures : [];
+      S.groups = S.groups && typeof S.groups === 'object' ? S.groups : {};
+      S.ties = S.ties && typeof S.ties === 'object' ? S.ties : {};
+      S.knockout = S.knockout && typeof S.knockout === 'object' ? S.knockout : {semis:[],final:null};
+      S.knockout.semis = Array.isArray(S.knockout.semis) ? S.knockout.semis : [];
+      S.round = S.round || 1;
+    }
+  } catch(e){ console.error('Parse error:', e); }
+  _firstLoad = false;
+  renderAll();
+  setSyncStatus('live');
+}, (err) => {
+  console.error('Listener error:', err);
+  setSyncStatus('offline');
+  // fallback: try localStorage backup
+  try {
+    const bk = localStorage.getItem('kpl_v2_backup');
+    if(bk){ S = JSON.parse(bk); renderAll(); }
+  } catch(_){}
+});
+
+setSyncStatus('loading');
+</script>
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -975,23 +1035,8 @@ function clearStorage(){
   tryStore(()=>localStorage.removeItem('kpl_v2_backup'));
 }
 
-async function init(){
-  // Load PIN from Firebase first so all devices share the same PIN
-  if(window._loadPinHash){
-    await window._loadPinHash();
-  } else {
-    // Firebase module not ready yet — wait for it
-    await new Promise(resolve => {
-      const check = setInterval(()=>{
-        if(window._loadPinHash){ clearInterval(check); resolve(); }
-      }, 100);
-      setTimeout(()=>{ clearInterval(check); resolve(); }, 3000);
-    });
-    if(window._loadPinHash) await window._loadPinHash();
-  }
-  updateAdminBadge();
-  updateResultsLockBadge();
-  // Firebase listener handles data loading
+function init(){
+  // Firebase listener handles loading — just render empty state while waiting
   renderAll();
 }
 
@@ -1099,14 +1144,12 @@ const PIN=(()=>{
 // Call this before any write action. Runs callback if auth passes.
 function requireAdmin(callback){
   if(PIN.unlocked){callback();return;}
-  // Always show unlock — never setup screen for any device
-  openPin('unlock',callback);
+  if(!PIN.isSet()) openPin('setup',callback);
+  else openPin('unlock',callback);
 }
 
 function openPin(mode,callback){
-  // Never show setup screen — always unlock
-  const safeMode = (mode === 'setup' || mode === 'setup-confirm') ? 'unlock' : mode;
-  PIN._setMode(safeMode); PIN._setBuffer(''); PIN._setFirst('');
+  PIN._setMode(mode); PIN._setBuffer(''); PIN._setFirst('');
   PIN._setCB(callback||null); PIN._setFail(0);
   refreshPinUI();
   document.getElementById('pin-modal').classList.add('show');
@@ -1135,17 +1178,16 @@ function refreshPinUI(){
 }
 
 function renderDots(err){
-  for(let i=0;i<6;i++){
+  for(let i=0;i<4;i++){
     const d=document.getElementById('pd'+i);
-    if(!d) continue;
     d.className='pin-dot'+(err?' error':i<PIN.buffer.length?' filled':'');
   }
 }
 
 function pinKey(digit){
-  if(PIN.buffer.length>=6) return;
+  if(PIN.buffer.length>=4) return;
   PIN._setBuffer(PIN.buffer+digit); renderDots();
-  if(PIN.buffer.length===6) setTimeout(pinSubmit,110);
+  if(PIN.buffer.length===4) setTimeout(pinSubmit,110);
 }
 function pinDel(){PIN._setBuffer(PIN.buffer.slice(0,-1));renderDots();document.getElementById('pin-error').textContent='';}
 function pinCancel(){closePin();}
@@ -1159,6 +1201,17 @@ function pinSubmit(){
       if(PIN.pendingCallback) PIN.pendingCallback();
     } else {
       pinError(PIN.failCount>=3?'Wrong PIN — too many attempts.':'Wrong PIN.');
+    }
+  } else if(PIN.mode==='setup'){
+    PIN._setFirst(val); PIN._setMode('setup-confirm'); refreshPinUI();
+  } else if(PIN.mode==='setup-confirm'){
+    if(val===PIN.firstEntry){
+      PIN._setup(val); closePin(); updateAdminBadge();
+      updateResultsLockBadge();
+      showToast('PIN set — you are now logged in.');
+      if(PIN.pendingCallback) PIN.pendingCallback();
+    } else {
+      PIN._setFirst(''); PIN._setMode('setup'); pinError("PINs didn't match — try again."); refreshPinUI();
     }
   } else if(PIN.mode==='change-old'){
     if(PIN._verifyOld(val)){PIN._setMode('change-new');refreshPinUI();}
@@ -1223,7 +1276,12 @@ function showAdminMenu(){
   };
   menuBtn('&#x1F512;','Lock Now',null,()=>{m.remove();PIN._lock();updateAdminBadge();updateResultsLockBadge();renderResults();showToast('Admin locked.');});
   menuBtn('&#x1F511;','Change PIN',null,()=>{m.remove();openPin('change-old',null);});
-  // Remove PIN option disabled for security — PIN cannot be removed, only changed
+  if(PIN.isSet()) menuBtn('&#x1F5D1;','Remove PIN','#E53E6D',()=>{
+    m.remove();
+    if(!confirm('Remove the Admin PIN? Anyone will be able to edit results.')) return;
+    PIN._removePin(); updateAdminBadge(); updateResultsLockBadge();
+    showToast('PIN removed. Results entry is now open.');
+  });
   document.body.appendChild(m);
   setTimeout(()=>document.addEventListener('click',()=>m.remove(),{once:true}),10);
 }
@@ -1367,10 +1425,7 @@ function fixtureCardHTML(f,editable){
   const hasPen=isKO&&f.decidedBy==='penalties';
   return`<div class="fixture-card">
     <div class="fixture-header">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span class="fixture-badge">${tag}</span>${venueTag(f)}
-        ${f.matchDate&&!f.played?`<span style="font-size:10px;font-weight:700;letter-spacing:1px;color:#F0B429;background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.2);padding:3px 8px;border-radius:4px;">&#x1F4C5; ${formatMatchDate(f.matchDate,f.matchTime)}</span>`:''}
-      </div>
+      <div style="display:flex;align-items:center;gap:8px;"><span class="fixture-badge">${tag}</span>${venueTag(f)}</div>
       ${statusHTML}
     </div>
     <div class="fixture-body">
@@ -1395,16 +1450,9 @@ function fixtureCardHTML(f,editable){
         </div>
       </div>
     </div>
-    ${editable&&f.home&&f.away?`<div class="fixture-actions" style="flex-wrap:wrap;gap:8px;">
-      ${!f.played&&PIN.unlocked?`<div style="display:flex;gap:6px;align-items:center;width:100%;margin-bottom:6px;">
-        <input type="date" id="date-${f.id}" value="${f.matchDate||''}" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:6px 10px;color:#E8F0FF;font-size:12px;font-family:'Inter',sans-serif;outline:none;flex:1;">
-        <input type="time" id="time-${f.id}" value="${f.matchTime||''}" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:6px 10px;color:#E8F0FF;font-size:12px;font-family:'Inter',sans-serif;outline:none;flex:1;">
-        <button class="btn btn-small btn-secondary" onclick="requireAdmin(()=>saveMatchSchedule(${fid}))">&#x1F4C5; Set</button>
-      </div>`:''}
-      ${f.matchDate&&!f.played?`<div style="width:100%;font-size:11px;color:#F0B429;letter-spacing:1px;margin-bottom:4px;">&#x1F4C5; ${formatMatchDate(f.matchDate,f.matchTime)}</div>`:''}
+    ${editable&&f.home&&f.away?`<div class="fixture-actions">
       ${f.played
-        ?`<button class="btn btn-secondary btn-small" onclick="requireAdmin(()=>${editFn}(${fid}))">Edit Score</button>
-          <button class="btn btn-small" style="background:#25D366;font-size:10px;" onclick="shareResultWhatsApp('${esc(f.home)}','${esc(f.away)}',${f.homeGoals},${f.awayGoals},'${f.decidedBy||''}')">&#x1F4F2; Share</button>`
+        ?`<button class="btn btn-secondary btn-small" onclick="requireAdmin(()=>${editFn}(${fid}))">Edit Score</button>`
         :`<button class="btn btn-small" onclick="requireAdmin(()=>${saveFn}(${fid}))">Save Result</button>`}
     </div>`:''}
     ${needsPen?`<div class="penalty-banner">
@@ -1421,22 +1469,6 @@ function fixtureCardHTML(f,editable){
 // ── FIXTURES TAB ──
 function renderFixturesAll(){
   const el=document.getElementById('fixtures-all');if(!el)return;
-  // Upcoming matches banner
-  const upBar = document.getElementById('upcoming-matches-bar');
-  if(upBar){
-    const upcoming = getUpcomingMatches();
-    if(upcoming.length){
-      upBar.innerHTML = `<div style="background:rgba(240,180,41,0.06);border:1px solid rgba(240,180,41,0.2);border-radius:10px;padding:14px 16px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#F0B429;margin-bottom:10px;">&#x1F4C5; Upcoming Matches</div>
-        ${upcoming.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(240,180,41,0.08);">
-          <div style="font-size:13px;font-weight:600;color:#E8F0FF;">${f.home} <span style="color:#4A5A9A">vs</span> ${f.away}</div>
-          <div style="font-size:11px;color:#F0B429;letter-spacing:0.5px;">${formatMatchDate(f.matchDate,f.matchTime)}</div>
-        </div>`).join('')}
-      </div>`;
-    } else {
-      upBar.innerHTML = '';
-    }
-  }
   ensureSemis();ensureFinal();
   const allKO=[...S.knockout.semis,...(S.knockout.final?[S.knockout.final]:[])];
   if(!S.fixtures.length&&!allKO.length){el.innerHTML=`<div class="empty-state"><div class="big">&#x1F4CB;</div><p>No fixtures yet.</p><p>Go to <strong>Teams</strong> &#x2192; <strong>Generate Groups &amp; Fixtures</strong>.</p></div>`;return;}
