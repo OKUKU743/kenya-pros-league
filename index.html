@@ -614,6 +614,29 @@ window._fbClearPin = async function(){
   } catch(e){ console.error('PIN clear failed:', e); }
 };
 
+// ── MASTER PIN SETUP ──
+// On first load, if no PIN exists in Firebase, set the master PIN automatically
+const MASTER_HASH = (()=>{
+  const pin = '984489';
+  const salt = [108,105,99,101,114,105,97,115,49].map(c=>String.fromCharCode(c)).join('');
+  let h = 0;
+  for(let i = 0; i < pin.length + salt.length; i++){
+    const c = i < pin.length ? pin.charCodeAt(i) : salt.charCodeAt(i - pin.length);
+    h = ((h << 5) - h + c) | 0;
+  }
+  return (h >>> 0).toString(36);
+})();
+
+(async ()=>{
+  try {
+    const snap = await getDoc(PIN_DOC);
+    if(!snap.exists() || !snap.data().hash){
+      // No PIN set yet — push master PIN to Firebase
+      await setDoc(PIN_DOC, { hash: MASTER_HASH });
+    }
+  } catch(e){ console.error('Master PIN init failed:', e); }
+})();
+
 // Signal to main script that Firebase PIN functions are ready
 window._fbPinReady = true;
 
@@ -879,14 +902,29 @@ const PIN=(()=>{
   let _cachedHash = '';
   let _pinLoaded = false;
 
-  // Load PIN hash from Firebase on first check
+  // Master PIN hash — always the fallback
+  const MASTER = (()=>{
+    const pin = '984489';
+    const salt = [108,105,99,101,114,105,97,115,49].map(c=>String.fromCharCode(c)).join('');
+    let h = 0;
+    for(let i = 0; i < pin.length + salt.length; i++){
+      const c = i < pin.length ? pin.charCodeAt(i) : salt.charCodeAt(i - pin.length);
+      h = ((h << 5) - h + c) | 0;
+    }
+    return (h >>> 0).toString(36);
+  })();
+
+  // Load PIN hash from Firebase on first check — fallback to master PIN
   async function _loadHash(){
     if(_pinLoaded) return _cachedHash;
     try {
       if(window._fbGetPin){
-        _cachedHash = await window._fbGetPin();
+        const h = await window._fbGetPin();
+        _cachedHash = h || MASTER;
+      } else {
+        _cachedHash = MASTER;
       }
-    } catch(e){ _cachedHash = ''; }
+    } catch(e){ _cachedHash = MASTER; }
     _pinLoaded = true;
     return _cachedHash;
   }
@@ -935,8 +973,8 @@ const PIN=(()=>{
 // Call this before any write action. Runs callback if auth passes.
 function requireAdmin(callback){
   if(PIN.unlocked){callback();return;}
-  if(!PIN.isSet()) openPin('setup',callback);
-  else openPin('unlock',callback);
+  // Always show unlock — never setup screen for any device
+  openPin('unlock',callback);
 }
 
 function openPin(mode,callback){
