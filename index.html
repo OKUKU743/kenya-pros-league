@@ -1003,12 +1003,7 @@ function showAdminMenu(){
   };
   menuBtn('&#x1F512;','Lock Now',null,()=>{m.remove();PIN._lock();updateAdminBadge();updateResultsLockBadge();renderResults();showToast('Admin locked.');});
   menuBtn('&#x1F511;','Change PIN',null,()=>{m.remove();openPin('change-old',null);});
-  if(PIN.isSet()) menuBtn('&#x1F5D1;','Remove PIN','#E53E6D',()=>{
-    m.remove();
-    if(!confirm('Remove the Admin PIN? Anyone will be able to edit results.')) return;
-    PIN._removePin(); updateAdminBadge(); updateResultsLockBadge();
-    showToast('PIN removed. Results entry is now open.');
-  });
+  // Remove PIN option disabled for security — PIN cannot be removed, only changed
   document.body.appendChild(m);
   setTimeout(()=>document.addEventListener('click',()=>m.remove(),{once:true}),10);
 }
