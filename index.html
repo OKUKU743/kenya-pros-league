@@ -566,26 +566,35 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
     <div class="section-header">
       <div class="section-title">&#x1F465; League <span>Members</span></div>
     </div>
+
+    <!-- Public registration — anyone can join -->
+    <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.25);border-radius:12px;padding:18px;margin-bottom:22px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:6px;">Join the League</div>
+      <div style="font-size:12px;color:#4A5A9A;margin-bottom:14px;">Register yourself. Your game username is public — your personal details are private (Admin only).</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px;">
+        <input type="text" id="mem-username" placeholder="Game Username * e.g. Matrix" maxlength="20"
+          style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+        <input type="text" id="mem-name" placeholder="Real Name *" maxlength="40"
+          style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+        <input type="tel" id="mem-phone" placeholder="Phone Number" maxlength="20"
+          style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+        <input type="email" id="mem-email" placeholder="Email Address" maxlength="60"
+          style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+      </div>
+      <div style="background:rgba(229,62,109,0.05);border:1px solid rgba(229,62,109,0.12);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#E53E6D;">
+        &#x1F512; Real name, phone and email are visible to Admin only. Everyone else only sees your game username.
+      </div>
+      <button class="btn" onclick="addMember()">+ Join League</button>
+    </div>
+
+    <!-- Admin panel — manage roles, delete members -->
     <div id="members-admin-panel" style="display:none;margin-bottom:22px;">
-      <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.25);border-radius:12px;padding:18px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">Register Member</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
-          <input type="text" id="mem-name" placeholder="Full Name *" maxlength="40" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-          <input type="text" id="mem-nickname" placeholder="Nickname / Tag" maxlength="20" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-          <select id="mem-club" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;"><option value="">— Select Club —</option></select>
-          <select id="mem-role" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-            <option value="player">&#x26BD; Player</option>
-            <option value="admin">&#x1F6E1; Admin</option>
-          </select>
-        </div>
-        <div style="background:rgba(229,62,109,0.05);border:1px solid rgba(229,62,109,0.15);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:#E53E6D;">&#x1F512; Contact details below are visible to Admin only</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
-          <input type="tel" id="mem-phone" placeholder="Phone Number" maxlength="20" style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-          <input type="email" id="mem-email" placeholder="Email Address" maxlength="60" style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
-        </div>
-        <button class="btn" onclick="addMember()">+ Register Member</button>
+      <div style="background:rgba(240,180,41,0.05);border:1px solid rgba(240,180,41,0.2);border-radius:12px;padding:16px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#F0B429;margin-bottom:8px;">&#x1F6E1; Admin Controls — Full Member Directory</div>
+        <div style="font-size:12px;color:#4A5A9A;">You can see all details and manage roles below.</div>
       </div>
     </div>
+
     <div id="members-list"></div>
   </div>
 
@@ -1886,46 +1895,44 @@ function shareResultWhatsApp(homeClub, awayClub, homeGoals, awayGoals, decidedBy
 }
 
 // ── LEAGUE MEMBERS ──
-const ROLE_ICONS = {player:'⚽',admin:'🛡️'};
-const ROLE_COLORS = {player:'rgba(27,86,245,0.15)',admin:'rgba(240,180,41,0.12)'};
-const ROLE_BORDERS = {player:'rgba(27,86,245,0.3)',admin:'rgba(240,180,41,0.3)'};
-
-function populateMemberClubSelect(){
-  const sel = document.getElementById('mem-club');
-  if(!sel) return;
-  sel.innerHTML = '<option value="">— Select Club —</option>';
-  S.teams.forEach(t=>{
-    const opt = document.createElement('option');
-    opt.value = t.club;
-    opt.textContent = t.club;
-    sel.appendChild(opt);
-  });
-}
-
 function addMember(){
+  const username = document.getElementById('mem-username')?.value.trim();
   const name = document.getElementById('mem-name')?.value.trim();
-  const nickname = document.getElementById('mem-nickname')?.value.trim();
-  const club = document.getElementById('mem-club')?.value;
-  const role = document.getElementById('mem-role')?.value||'player';
   const phone = document.getElementById('mem-phone')?.value.trim();
   const email = document.getElementById('mem-email')?.value.trim();
-  if(!name){ alert('Enter full name.'); return; }
+  if(!username){ alert('Enter your game username.'); return; }
+  if(!name){ alert('Enter your real name.'); return; }
   if(!S.members) S.members = [];
+  // Check username not taken
+  if(S.members.find(m=>m.username.toLowerCase()===username.toLowerCase())){
+    alert('That username is already taken. Choose another.');
+    return;
+  }
   S.members.push({
     id: Date.now(),
-    name, nickname, club, role, phone, email,
+    username,  // public
+    name,      // admin only
+    phone,     // admin only
+    email,     // admin only
+    role: 'player',
     joinedAt: new Date().toISOString()
   });
-  // Clear inputs
-  ['mem-name','mem-nickname','mem-phone','mem-email'].forEach(id=>{
+  ['mem-username','mem-name','mem-phone','mem-email'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
-  document.getElementById('mem-club').value = '';
-  document.getElementById('mem-role').value = 'player';
   save();
   renderMembers();
-  showToast(name + ' registered!');
+  showToast(username + ' joined the league!');
+}
+
+function setMemberRole(id, role){
+  const m = (S.members||[]).find(m=>m.id===id);
+  if(!m) return;
+  m.role = role;
+  save();
+  renderMembers();
+  showToast(m.username + ' is now ' + (role==='admin'?'Admin':'Player'));
 }
 
 function deleteMember(id){
@@ -1935,75 +1942,66 @@ function deleteMember(id){
   renderMembers();
 }
 
-function getMemberStats(club){
-  const gs = getGroupStats();
-  let stats = null;
-  GN.forEach(g=>{
-    const t = (gs[g]||[]).find(r=>r.club===club);
-    if(t) stats = t;
-  });
-  return stats;
-}
-
 function renderMembers(){
   const el = document.getElementById('members-list');
   const adminPanel = document.getElementById('members-admin-panel');
   if(!el) return;
-  if(adminPanel){
-    adminPanel.style.display = PIN.unlocked ? 'block' : 'none';
-    if(PIN.unlocked) populateMemberClubSelect();
-  }
+  if(adminPanel) adminPanel.style.display = PIN.unlocked ? 'block' : 'none';
   const members = S.members||[];
   if(!members.length){
     el.innerHTML = `<div class="empty-state">
       <div class="big">&#x1F465;</div>
-      <p>No members registered yet.</p>
-      ${PIN.unlocked?'<p>Register your first member above.</p>':'<p>Members will appear here once registered.</p>'}
+      <p>No members yet.</p>
+      <p>Be the first to join above!</p>
     </div>`;
     return;
   }
-  // Group by role
-  const roles = ['admin','player'];
-  let html = '';
-  roles.forEach(role=>{
-    const group = members.filter(m=>m.role===role);
-    if(!group.length) return;
-    const roleLabel = {admin:'Admins',player:'Players'}[role];
-    html += `<div style="margin-bottom:28px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">${ROLE_ICONS[role]} ${roleLabel} (${group.length})</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
-        ${group.map(m=>{
-          const stats = m.club ? getMemberStats(m.club) : null;
-          const url = m.club ? CRESTS[m.club] : null;
-          const ini = (m.name||'?').split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
-          return `<div style="background:${ROLE_COLORS[m.role]||ROLE_COLORS.player};border:1px solid ${ROLE_BORDERS[m.role]||ROLE_BORDERS.player};border-radius:12px;padding:16px;position:relative;">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-              ${url
-                ?`<img src="${url}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;flex-shrink:0;" onerror="this.style.display='none';if(this.nextSibling)this.nextSibling.style.display='flex'">`
-                :''}
-              <div style="width:44px;height:44px;border-radius:50%;background:#111840;display:${url?'none':'flex'};align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:#7C9EFF;flex-shrink:0;">${ini}</div>
-              <div style="flex:1;overflow:hidden;">
-                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;letter-spacing:0.5px;text-transform:uppercase;color:#E8F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
-                ${m.nickname?`<div style="font-size:11px;color:#F0B429;margin-top:1px;">"${m.nickname}"</div>`:''}
-                ${m.club?`<div style="font-size:11px;color:#7C9EFF;margin-top:2px;">&#x26BD; ${m.club}</div>`:''}
-              </div>
-              <span style="font-size:18px;" title="${m.role}">${ROLE_ICONS[m.role]||'⚽'}</span>
-            </div>
-            ${stats?`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-              <span style="font-size:11px;background:rgba(27,86,245,0.1);border:1px solid rgba(27,86,245,0.2);border-radius:4px;padding:3px 8px;color:#7C9EFF;">${stats.pts} pts</span>
-              <span style="font-size:11px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:4px;padding:3px 8px;color:#22C55E;">${stats.w}W ${stats.d}D ${stats.l}L</span>
-              <span style="font-size:11px;background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.2);border-radius:4px;padding:3px 8px;color:#F0B429;">${stats.gf} goals</span>
-            </div>`:''}
-            ${PIN.unlocked&&(m.phone||m.email)?`<div style="border-top:1px solid rgba(229,62,109,0.15);padding-top:8px;margin-top:4px;">
-              ${m.phone?`<div style="font-size:11px;color:#E53E6D;margin-bottom:2px;">&#x1F4F1; ${m.phone}</div>`:''}
-              ${m.email?`<div style="font-size:11px;color:#E53E6D;">&#x2709;&#xFE0F; ${m.email}</div>`:''}
-            </div>`:''}
-            ${PIN.unlocked?`<button onclick="requireAdmin(()=>deleteMember(${m.id}))" style="position:absolute;top:10px;right:10px;background:none;border:none;color:#4A5A9A;cursor:pointer;font-size:14px;" title="Remove">&#x2715;</button>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+  // Admins first then players
+  const sorted = [...members].sort((a,b)=>{
+    if(a.role==='admin'&&b.role!=='admin') return -1;
+    if(b.role==='admin'&&a.role!=='admin') return 1;
+    return 0;
   });
+  const html = `
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#4A5A9A;margin-bottom:12px;">
+      ${members.length} MEMBER${members.length!==1?'S':''} REGISTERED
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
+      ${sorted.map(m=>{
+        const ini = (m.username||'?')[0].toUpperCase();
+        const isAdmin = m.role==='admin';
+        return `<div style="background:${isAdmin?'rgba(240,180,41,0.08)':'#0A0E28'};border:1px solid ${isAdmin?'rgba(240,180,41,0.25)':'rgba(27,86,245,0.18)'};border-radius:12px;padding:14px;position:relative;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:46px;height:46px;border-radius:50%;background:${isAdmin?'rgba(240,180,41,0.15)':'#111840'};display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:${isAdmin?'#F0B429':'#7C9EFF'};flex-shrink:0;border:2px solid ${isAdmin?'rgba(240,180,41,0.3)':'rgba(27,86,245,0.2)'};">
+              ${ini}
+            </div>
+            <div style="flex:1;overflow:hidden;">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:1px;text-transform:uppercase;color:#E8F0FF;">${m.username}</div>
+              <div style="font-size:11px;color:${isAdmin?'#F0B429':'#4A5A9A'};margin-top:2px;letter-spacing:1px;">${isAdmin?'&#x1F6E1; ADMIN':'&#x26BD; PLAYER'}</div>
+              ${PIN.unlocked?`
+                <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(27,86,245,0.1);">
+                  <div style="font-size:11px;color:#E8F0FF;margin-bottom:2px;">&#x1F464; ${m.name||'—'}</div>
+                  ${m.phone?`<div style="font-size:11px;color:#7C9EFF;">&#x1F4F1; ${m.phone}</div>`:''}
+                  ${m.email?`<div style="font-size:11px;color:#7C9EFF;">&#x2709;&#xFE0F; ${m.email}</div>`:''}
+                </div>
+              `:''}
+            </div>
+          </div>
+          ${PIN.unlocked?`
+            <div style="display:flex;gap:6px;margin-top:10px;">
+              <button onclick="requireAdmin(()=>setMemberRole(${m.id},'${isAdmin?'player':'admin'}))" 
+                style="flex:1;background:${isAdmin?'rgba(27,86,245,0.1)':'rgba(240,180,41,0.1)'};border:1px solid ${isAdmin?'rgba(27,86,245,0.3)':'rgba(240,180,41,0.3)'};border-radius:6px;padding:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:${isAdmin?'#7C9EFF':'#F0B429'};cursor:pointer;">
+                ${isAdmin?'&#x26BD; Make Player':'&#x1F6E1; Make Admin'}
+              </button>
+              <button onclick="requireAdmin(()=>deleteMember(${m.id}))"
+                style="background:rgba(229,62,109,0.08);border:1px solid rgba(229,62,109,0.2);border-radius:6px;padding:6px 10px;font-size:12px;color:#E53E6D;cursor:pointer;">
+                &#x2715;
+              </button>
+            </div>
+          `:''}
+        </div>`;
+      }).join('')}
+    </div>`;
   el.innerHTML = html;
 }
 
