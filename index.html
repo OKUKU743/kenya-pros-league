@@ -519,7 +519,10 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
 
   <!-- LEAGUE TABLE -->
   <div id="tab-table" class="section">
-    <div class="section-header"><div class="section-title">League <span>Table</span></div></div>
+    <div class="section-header">
+      <div class="section-title">League <span>Table</span></div>
+      <button class="btn" style="background:#25D366;font-size:11px;" onclick="shareStandingsWhatsApp()">&#x1F4F2; Share Standings</button>
+    </div>
     <div id="table-container"></div>
   </div>
 
@@ -1270,7 +1273,8 @@ function fixtureCardHTML(f,editable){
     </div>
     ${editable&&f.home&&f.away?`<div class="fixture-actions">
       ${f.played
-        ?`<button class="btn btn-secondary btn-small" onclick="requireAdmin(()=>${editFn}(${fid}))">Edit Score</button>`
+        ?`<button class="btn btn-secondary btn-small" onclick="requireAdmin(()=>${editFn}(${fid}))">Edit Score</button>
+          <button class="btn btn-small" style="background:#25D366;font-size:10px;" onclick="shareResultWhatsApp('${esc(f.home)}','${esc(f.away)}',${f.homeGoals},${f.awayGoals},'${f.decidedBy||''}')">📲 Share</button>`
         :`<button class="btn btn-small" onclick="requireAdmin(()=>${saveFn}(${fid}))">Save Result</button>`}
     </div>`:''}
     ${needsPen?`<div class="penalty-banner">
@@ -1637,6 +1641,66 @@ function clearAll(){
   save(); // pushes reset to Firestore so all devices clear
   renderAll();
 }
+// ── WHATSAPP SHARE ──
+function shareStandingsWhatsApp(){
+  const gs = getGroupStats();
+  const hasTeams = GN.some(g=>(S.groups[g]||[]).length>0);
+  if(!hasTeams){ alert('No standings yet — generate groups first.'); return; }
+
+  // Build overall standings
+  let allRows = [];
+  GN.forEach(g=>{ (gs[g]||[]).forEach((t,i)=>allRows.push({...t,groupLabel:g})); });
+  allRows.sort((a,b)=>{ if(b.pts!==a.pts)return b.pts-a.pts; if(b.gd!==a.gd)return b.gd-a.gd; return b.gf-a.gf; });
+
+  const medals = ['🥇','🥈','🥉'];
+  let msg = '🏆 *KENYA PRO\'S LEAGUE — STANDINGS*\n';
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+  allRows.forEach((t,i)=>{
+    const medal = medals[i] || `${i+1}.`;
+    const gd = t.gd > 0 ? `+${t.gd}` : `${t.gd}`;
+    msg += `${medal} *${t.club}* — ${t.pts}pts (${t.w}W ${t.d}D ${t.l}L | GD:${gd})\n`;
+    msg += `    👤 ${t.player} | Grp ${t.groupLabel}\n`;
+  });
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+
+  // Top scorer
+  let topScorer = allRows[0];
+  allRows.forEach(t=>{ if(t.gf > topScorer.gf) topScorer = t; });
+  msg += `⚽ Top Goals: *${topScorer.player}* (${topScorer.club}) — ${topScorer.gf} goals\n`;
+
+  // Champion if exists
+  const fin = S.knockout.final;
+  const champ = fin ? koWinner(fin) : null;
+  if(champ){ msg += `🏆 Champion: *${champ}* (${getPlayer(champ)})\n`; }
+
+  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🔗 Live: https://OKUKU743.github.io/kenya-pros-league`;
+
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+function shareResultWhatsApp(homeClub, awayClub, homeGoals, awayGoals, decidedBy){
+  const homePlayer = getPlayer(homeClub);
+  const awayPlayer = getPlayer(awayClub);
+  let result = '';
+  if(homeGoals > awayGoals) result = `✅ *${homeClub}* wins!`;
+  else if(awayGoals > homeGoals) result = `✅ *${awayClub}* wins!`;
+  else result = decidedBy === 'penalties' ? `🔄 Draw — decided on penalties` : `🤝 It\'s a Draw!`;
+
+  let msg = `⚽ *KENYA PRO\'S LEAGUE — RESULT*\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🏠 *${homeClub}* ${homeGoals} — ${awayGoals} *${awayClub}* ✈️\n`;
+  msg += `👤 ${homePlayer} vs 👤 ${awayPlayer}\n`;
+  msg += `${result}\n`;
+  if(decidedBy === 'penalties') msg += `🥅 Won on penalties\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🔗 Live: https://OKUKU743.github.io/kenya-pros-league`;
+
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
 function dismissSplash(){
   const s=document.getElementById('splash');if(!s||s.classList.contains('hide'))return;
   s.classList.add('hide');setTimeout(()=>{if(s)s.style.display='none';},650);
