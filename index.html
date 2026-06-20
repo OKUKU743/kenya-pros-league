@@ -567,6 +567,7 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
     <button class="tab" onclick="switchTab('stats',this)">Player Stats</button>
     <button class="tab" onclick="switchTab('bracket',this)">Bracket</button>
     <button class="tab" onclick="switchTab('champion',this)">Champion</button>
+    <button class="tab" onclick="switchTab('announcements',this)">&#x1F4E2; News</button>
     <span id="sync-status" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7C9EFF;padding:5px 10px;border:1px solid rgba(27,86,245,0.2);border-radius:6px;">⏳ Connecting...</span>
     <button class="admin-badge locked" id="admin-badge" onclick="adminBadgeClick()">&#x1F512; Admin</button>
   </div>
@@ -736,6 +737,31 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
   <!-- CHAMPION -->
   <div id="tab-champion" class="section">
     <div id="champion-display"></div>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <div id="tab-announcements" class="section">
+    <div class="section-header">
+      <div class="section-title">📢 <span>Announcements</span></div>
+    </div>
+    <div id="announcement-admin-panel" style="display:none;margin-bottom:22px;">
+      <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.25);border-radius:12px;padding:18px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">Post Announcement</div>
+        <input type="text" id="ann-title-input" placeholder="Title e.g. Next Match — Saturday 3PM" style="width:100%;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;margin-bottom:10px;">
+        <textarea id="ann-body-input" placeholder="Details..." rows="3" style="width:100%;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;resize:vertical;margin-bottom:10px;"></textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <select id="ann-type-input" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+            <option value="info">📌 General</option>
+            <option value="match">⚽ Match</option>
+            <option value="result">🏆 Result</option>
+            <option value="warning">⚠️ Warning</option>
+            <option value="celebration">🎉 Celebration</option>
+          </select>
+          <button class="btn" onclick="postAnnouncement()">Post</button>
+        </div>
+      </div>
+    </div>
+    <div id="announcements-list"></div>
   </div>
 
 </div>
@@ -1013,7 +1039,7 @@ const CRESTS={
 };
 const GN=['A','B','C','D'];
 const INITIAL=[];
-let S={teams:[],groups:{},fixtures:[],knockout:{semis:[],final:null},round:1,ties:{}};
+let S={teams:[],groups:{},fixtures:[],knockout:{semis:[],final:null},round:1,ties:{},announcements:[]};
 let currentStatTab='goals';
 
 // ── STORAGE — Firebase primary, localStorage backup ──
@@ -1052,7 +1078,7 @@ async function init(){
 }
 
 function renderAll(){
-  [renderTeams,renderFixturesAll,renderGroups,renderResults,renderBracket,renderChampion,renderTable,renderStats]
+  [renderTeams,renderFixturesAll,renderGroups,renderResults,renderBracket,renderChampion,renderTable,renderStats,renderAnnouncements]
     .forEach(fn=>{try{fn();}catch(e){console.error(fn.name,e);}});
 }
 
@@ -1808,7 +1834,7 @@ function switchTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   const sec=document.getElementById('tab-'+id);if(sec)sec.classList.add('active');
   if(el)el.classList.add('active');
-  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams};
+  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements};
   if(renders[id])renders[id]();
 }
 function clearAll(){
@@ -1876,6 +1902,96 @@ function shareResultWhatsApp(homeClub, awayClub, homeGoals, awayGoals, decidedBy
 
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
+}
+
+// ── ANNOUNCEMENTS ──
+const ANN_ICONS = {info:'📌',match:'⚽',result:'🏆',warning:'⚠️',celebration:'🎉'};
+const ANN_COLORS = {
+  info:'rgba(27,86,245,0.15)',
+  match:'rgba(34,197,94,0.1)',
+  result:'rgba(240,180,41,0.1)',
+  warning:'rgba(229,62,109,0.1)',
+  celebration:'rgba(240,180,41,0.12)'
+};
+const ANN_BORDERS = {
+  info:'rgba(27,86,245,0.35)',
+  match:'rgba(34,197,94,0.3)',
+  result:'rgba(240,180,41,0.3)',
+  warning:'rgba(229,62,109,0.3)',
+  celebration:'rgba(240,180,41,0.35)'
+};
+
+function postAnnouncement(){
+  const title = document.getElementById('ann-title-input').value.trim();
+  const body = document.getElementById('ann-body-input').value.trim();
+  const type = document.getElementById('ann-type-input').value;
+  if(!title){ alert('Enter a title.'); return; }
+  if(!S.announcements) S.announcements = [];
+  S.announcements.unshift({
+    id: Date.now(),
+    title,
+    body,
+    type,
+    time: new Date().toISOString()
+  });
+  // Keep max 20 announcements
+  if(S.announcements.length > 20) S.announcements = S.announcements.slice(0,20);
+  document.getElementById('ann-title-input').value = '';
+  document.getElementById('ann-body-input').value = '';
+  save();
+  renderAnnouncements();
+  showToast('Announcement posted!');
+}
+
+function deleteAnnouncement(id){
+  if(!confirm('Delete this announcement?')) return;
+  S.announcements = (S.announcements||[]).filter(a=>a.id!==id);
+  save();
+  renderAnnouncements();
+}
+
+function formatAnnTime(iso){
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now-d)/1000);
+  if(diff < 60) return 'Just now';
+  if(diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if(diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function renderAnnouncements(){
+  const el = document.getElementById('announcements-list');
+  const adminPanel = document.getElementById('announcement-admin-panel');
+  if(!el) return;
+  if(adminPanel) adminPanel.style.display = PIN.unlocked ? 'block' : 'none';
+  const anns = S.announcements||[];
+  if(!anns.length){
+    el.innerHTML = `<div class="empty-state">
+      <div class="big">📢</div>
+      <p>No announcements yet.</p>
+      ${PIN.unlocked?'<p>Post your first announcement above.</p>':'<p>Check back later for updates from the admin.</p>'}
+    </div>`;
+    return;
+  }
+  el.innerHTML = anns.map(a=>{
+    const icon = ANN_ICONS[a.type]||'📌';
+    const bg = ANN_COLORS[a.type]||ANN_COLORS.info;
+    const border = ANN_BORDERS[a.type]||ANN_BORDERS.info;
+    return `<div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:18px;margin-bottom:14px;position:relative;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;">
+          <span style="font-size:24px;">${icon}</span>
+          <div style="flex:1;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:0.5px;text-transform:uppercase;color:#E8F0FF;">${a.title}</div>
+            ${a.body?`<div style="font-size:13px;color:#7C9EFF;margin-top:6px;line-height:1.5;">${a.body}</div>`:''}
+            <div style="font-size:10px;color:#4A5A9A;margin-top:8px;letter-spacing:1px;text-transform:uppercase;">${formatAnnTime(a.time)}</div>
+          </div>
+        </div>
+        ${PIN.unlocked?`<button onclick="requireAdmin(()=>deleteAnnouncement(${a.id}))" style="background:none;border:none;color:#4A5A9A;cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;" title="Delete">✕</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function dismissSplash(){
