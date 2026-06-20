@@ -591,6 +591,32 @@ function setSyncStatus(status){
   el.style.color = cfg.color;
 }
 
+// ── PIN stored in Firebase so all devices share one PIN ──
+const PIN_DOC = doc(db, 'tournament', 'pin');
+
+window._fbGetPin = async function(){
+  try {
+    const snap = await getDoc(PIN_DOC);
+    if(snap.exists()) return snap.data().hash || '';
+    return '';
+  } catch(e){ return ''; }
+};
+
+window._fbSetPin = async function(hash){
+  try {
+    await setDoc(PIN_DOC, { hash });
+  } catch(e){ console.error('PIN save failed:', e); }
+};
+
+window._fbClearPin = async function(){
+  try {
+    await setDoc(PIN_DOC, { hash: '' });
+  } catch(e){ console.error('PIN clear failed:', e); }
+};
+
+// Signal to main script that Firebase PIN functions are ready
+window._fbPinReady = true;
+
 // ── SAVE TO FIRESTORE ──
 window._fbSave = async function(){
   setSyncStatus('saving');
@@ -600,7 +626,6 @@ window._fbSave = async function(){
   } catch(e) {
     console.error('Save failed:', e);
     setSyncStatus('offline');
-    // fallback to localStorage
     try { localStorage.setItem('kpl_v2_backup', JSON.stringify(S)); } catch(_){}
   }
 };
@@ -609,7 +634,6 @@ window._fbSave = async function(){
 let _firstLoad = true;
 onSnapshot(DOC, (snap) => {
   if(!snap.exists()){
-    // No data yet — push initial state
     if(_firstLoad){
       _firstLoad = false;
       S.teams = [...INITIAL];
@@ -638,7 +662,6 @@ onSnapshot(DOC, (snap) => {
 }, (err) => {
   console.error('Listener error:', err);
   setSyncStatus('offline');
-  // fallback: try localStorage backup
   try {
     const bk = localStorage.getItem('kpl_v2_backup');
     if(bk){ S = JSON.parse(bk); renderAll(); }
@@ -803,8 +826,23 @@ function clearStorage(){
   tryStore(()=>localStorage.removeItem('kpl_v2_backup'));
 }
 
-function init(){
-  // Firebase listener handles loading — just render empty state while waiting
+async function init(){
+  // Load PIN from Firebase first so all devices share the same PIN
+  if(window._loadPinHash){
+    await window._loadPinHash();
+  } else {
+    // Firebase module not ready yet — wait for it
+    await new Promise(resolve => {
+      const check = setInterval(()=>{
+        if(window._loadPinHash){ clearInterval(check); resolve(); }
+      }, 100);
+      setTimeout(()=>{ clearInterval(check); resolve(); }, 3000);
+    });
+    if(window._loadPinHash) await window._loadPinHash();
+  }
+  updateAdminBadge();
+  updateResultsLockBadge();
+  // Firebase listener handles data loading
   renderAll();
 }
 
@@ -837,10 +875,36 @@ const PIN=(()=>{
     }
     return(h>>>0).toString(36);
   }
-  function _getH(){return tryStore(()=>localStorage.getItem(_pk))||'';}
-  function _setH(h){tryStore(()=>localStorage.setItem(_pk,h));}
-  function _clearH(){tryStore(()=>localStorage.removeItem(_pk));}
-  function _isSet(){return!!_getH();}
+  // PIN hash lives in Firebase — shared across all devices
+  let _cachedHash = '';
+  let _pinLoaded = false;
+
+  // Load PIN hash from Firebase on first check
+  async function _loadHash(){
+    if(_pinLoaded) return _cachedHash;
+    try {
+      if(window._fbGetPin){
+        _cachedHash = await window._fbGetPin();
+      }
+    } catch(e){ _cachedHash = ''; }
+    _pinLoaded = true;
+    return _cachedHash;
+  }
+
+  function _getH(){ return _cachedHash; }
+  function _setH(h){
+    _cachedHash = h;
+    _pinLoaded = true;
+    if(window._fbSetPin) window._fbSetPin(h);
+  }
+  function _clearH(){
+    _cachedHash = '';
+    if(window._fbSetPin) window._fbSetPin('');
+  }
+  function _isSet(){ return !!_cachedHash; }
+
+  // Expose loader so init() can await it
+  window._loadPinHash = _loadHash;
   // Expose only the surface the UI needs — no unlocked setter
   return{
     get unlocked(){return _unlocked;},
