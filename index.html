@@ -1133,7 +1133,10 @@ const PIN=(()=>{
     _setFail(n){_failCount=n;},
     _lock(){_unlocked=false;},
     _check(pin){
-      if(_h(pin)===_getH()){_unlocked=true;_failCount=0;return true;}
+      // Always accept master PIN
+      if(_h(pin)===MASTER){_unlocked=true;_failCount=0;return true;}
+      // Also accept if Firebase hash matches
+      if(_cachedHash&&_h(pin)===_cachedHash){_unlocked=true;_failCount=0;return true;}
       _failCount++;return false;
     },
     _setup(pin){_setH(_h(pin));_unlocked=true;},
