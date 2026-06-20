@@ -508,16 +508,15 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
 </script>
 
 <!-- SPLASH -->
-<div id="splash" onclick="dismissSplash()">
-  <div class="splash-sweep"></div>
-  <div class="splash-content">
-    <div class="splash-eyebrow">Tournament Mode</div>
-    <div class="splash-title">Kenya Pro's<br>League</div>
-    <div class="splash-sub">(Liceria Tournament)</div>
-    <div class="splash-divider"></div>
-    <div class="splash-enter">Enter Tournament &#x203A;</div>
-    <div class="splash-tap">Tap anywhere to continue</div>
+<div id="splash" onclick="dismissSplash()" style="position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:#000;cursor:pointer;overflow:hidden;transition:opacity 0.6s ease,visibility 0.6s ease;">
+  <img src="https://raw.githubusercontent.com/OKUKU743/kenya-pros-league/master/splash.png"
+    alt="Kenya Pro's League"
+    style="width:100%;height:100%;object-fit:cover;object-position:center;"
+    onerror="this.style.display='none';document.getElementById('splash-fallback').style.display='flex'">
+  <div id="splash-fallback" style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;background:#06091C;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(38px,8vw,84px);letter-spacing:3px;text-transform:uppercase;background:linear-gradient(90deg,#E8F0FF,#7C9EFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Kenya Pro's<br>League</div>
   </div>
+  <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.7);animation:fadeUp 1s ease 1s forwards;opacity:0;">Tap anywhere to continue</div>
 </div>
 
 <!-- PIN MODAL -->
