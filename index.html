@@ -567,6 +567,7 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
     <button class="tab" onclick="switchTab('stats',this)">Player Stats</button>
     <button class="tab" onclick="switchTab('bracket',this)">Bracket</button>
     <button class="tab" onclick="switchTab('champion',this)">Champion</button>
+    <button class="tab" onclick="switchTab('members',this)">&#x1F465; Members</button>
     <button class="tab" onclick="switchTab('announcements',this)">&#x1F4E2; News</button>
     <button class="tab" onclick="switchTab('chat',this)">&#x1F4AC; Chat</button>
     <span id="sync-status" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7C9EFF;padding:5px 10px;border:1px solid rgba(27,86,245,0.2);border-radius:6px;">⏳ Connecting...</span>
@@ -739,6 +740,48 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
   <!-- CHAMPION -->
   <div id="tab-champion" class="section">
     <div id="champion-display"></div>
+  </div>
+
+  <!-- LEAGUE MEMBERS -->
+  <div id="tab-members" class="section">
+    <div class="section-header">
+      <div class="section-title">&#x1F465; League <span>Members</span></div>
+    </div>
+
+    <!-- Admin add member panel -->
+    <div id="members-admin-panel" style="display:none;margin-bottom:22px;">
+      <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.25);border-radius:12px;padding:18px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">Register Member</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
+          <input type="text" id="mem-name" placeholder="Full Name *" maxlength="40"
+            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="text" id="mem-nickname" placeholder="Nickname / Tag" maxlength="20"
+            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <select id="mem-club"
+            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+            <option value="">&#x2014; Select Club &#x2014;</option>
+          </select>
+          <select id="mem-role"
+            style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+            <option value="player">&#x26BD; Player</option>
+            <option value="admin">&#x1F6E1; Admin</option>
+          </select>
+        </div>
+        <!-- Contact fields — admin only visibility note -->
+        <div style="background:rgba(229,62,109,0.05);border:1px solid rgba(229,62,109,0.15);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:#E53E6D;letter-spacing:0.5px;">
+          &#x1F512; Contact details below are visible to Admin only
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
+          <input type="tel" id="mem-phone" placeholder="Phone Number" maxlength="20"
+            style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <input type="email" id="mem-email" placeholder="Email Address" maxlength="60"
+            style="background:#06091C;border:1px solid rgba(229,62,109,0.2);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+        </div>
+        <button class="btn" onclick="addMember()">+ Register Member</button>
+      </div>
+    </div>
+
+    <div id="members-list"></div>
   </div>
 
   <!-- CHAT -->
@@ -1091,7 +1134,7 @@ const CRESTS={
 };
 const GN=['A','B','C','D'];
 const INITIAL=[];
-let S={teams:[],groups:{},fixtures:[],knockout:{semis:[],final:null},round:1,ties:{},announcements:[]};
+let S={teams:[],groups:{},fixtures:[],knockout:{semis:[],final:null},round:1,ties:{},announcements:[],members:[]};
 let currentStatTab='goals';
 
 // ── STORAGE — Firebase primary, localStorage backup ──
@@ -1130,7 +1173,7 @@ async function init(){
 }
 
 function renderAll(){
-  [renderTeams,renderFixturesAll,renderGroups,renderResults,renderBracket,renderChampion,renderTable,renderStats,renderAnnouncements]
+  [renderTeams,renderFixturesAll,renderGroups,renderResults,renderBracket,renderChampion,renderTable,renderStats,renderAnnouncements,renderMembers]
     .forEach(fn=>{try{fn();}catch(e){console.error(fn.name,e);}});
 }
 
@@ -1911,7 +1954,7 @@ function switchTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   const sec=document.getElementById('tab-'+id);if(sec)sec.classList.add('active');
   if(el)el.classList.add('active');
-  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements,chat:renderChat};
+  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements,chat:renderChat,members:renderMembers};
   if(renders[id])renders[id]();
 }
 function clearAll(){
@@ -1979,6 +2022,128 @@ function shareResultWhatsApp(homeClub, awayClub, homeGoals, awayGoals, decidedBy
 
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
+}
+
+// ── LEAGUE MEMBERS ──
+const ROLE_ICONS = {player:'⚽',admin:'🛡️'};
+const ROLE_COLORS = {player:'rgba(27,86,245,0.15)',admin:'rgba(240,180,41,0.12)'};
+const ROLE_BORDERS = {player:'rgba(27,86,245,0.3)',admin:'rgba(240,180,41,0.3)'};
+
+function populateMemberClubSelect(){
+  const sel = document.getElementById('mem-club');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Select Club —</option>';
+  S.teams.forEach(t=>{
+    const opt = document.createElement('option');
+    opt.value = t.club;
+    opt.textContent = t.club;
+    sel.appendChild(opt);
+  });
+}
+
+function addMember(){
+  const name = document.getElementById('mem-name')?.value.trim();
+  const nickname = document.getElementById('mem-nickname')?.value.trim();
+  const club = document.getElementById('mem-club')?.value;
+  const role = document.getElementById('mem-role')?.value||'player';
+  const phone = document.getElementById('mem-phone')?.value.trim();
+  const email = document.getElementById('mem-email')?.value.trim();
+  if(!name){ alert('Enter full name.'); return; }
+  if(!S.members) S.members = [];
+  S.members.push({
+    id: Date.now(),
+    name, nickname, club, role, phone, email,
+    joinedAt: new Date().toISOString()
+  });
+  // Clear inputs
+  ['mem-name','mem-nickname','mem-phone','mem-email'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('mem-club').value = '';
+  document.getElementById('mem-role').value = 'player';
+  save();
+  renderMembers();
+  showToast(name + ' registered!');
+}
+
+function deleteMember(id){
+  if(!confirm('Remove this member?')) return;
+  S.members = (S.members||[]).filter(m=>m.id!==id);
+  save();
+  renderMembers();
+}
+
+function getMemberStats(club){
+  const gs = getGroupStats();
+  let stats = null;
+  GN.forEach(g=>{
+    const t = (gs[g]||[]).find(r=>r.club===club);
+    if(t) stats = t;
+  });
+  return stats;
+}
+
+function renderMembers(){
+  const el = document.getElementById('members-list');
+  const adminPanel = document.getElementById('members-admin-panel');
+  if(!el) return;
+  if(adminPanel){
+    adminPanel.style.display = PIN.unlocked ? 'block' : 'none';
+    if(PIN.unlocked) populateMemberClubSelect();
+  }
+  const members = S.members||[];
+  if(!members.length){
+    el.innerHTML = `<div class="empty-state">
+      <div class="big">&#x1F465;</div>
+      <p>No members registered yet.</p>
+      ${PIN.unlocked?'<p>Register your first member above.</p>':'<p>Members will appear here once registered.</p>'}
+    </div>`;
+    return;
+  }
+  // Group by role
+  const roles = ['admin','player'];
+  let html = '';
+  roles.forEach(role=>{
+    const group = members.filter(m=>m.role===role);
+    if(!group.length) return;
+    const roleLabel = {admin:'Admins',player:'Players'}[role];
+    html += `<div style="margin-bottom:28px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:#7C9EFF;margin-bottom:12px;">${ROLE_ICONS[role]} ${roleLabel} (${group.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+        ${group.map(m=>{
+          const stats = m.club ? getMemberStats(m.club) : null;
+          const url = m.club ? CRESTS[m.club] : null;
+          const ini = (m.name||'?').split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+          return `<div style="background:${ROLE_COLORS[m.role]||ROLE_COLORS.player};border:1px solid ${ROLE_BORDERS[m.role]||ROLE_BORDERS.player};border-radius:12px;padding:16px;position:relative;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              ${url
+                ?`<img src="${url}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;flex-shrink:0;" onerror="this.style.display='none';if(this.nextSibling)this.nextSibling.style.display='flex'">`
+                :''}
+              <div style="width:44px;height:44px;border-radius:50%;background:#111840;display:${url?'none':'flex'};align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:#7C9EFF;flex-shrink:0;">${ini}</div>
+              <div style="flex:1;overflow:hidden;">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;letter-spacing:0.5px;text-transform:uppercase;color:#E8F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
+                ${m.nickname?`<div style="font-size:11px;color:#F0B429;margin-top:1px;">"${m.nickname}"</div>`:''}
+                ${m.club?`<div style="font-size:11px;color:#7C9EFF;margin-top:2px;">&#x26BD; ${m.club}</div>`:''}
+              </div>
+              <span style="font-size:18px;" title="${m.role}">${ROLE_ICONS[m.role]||'⚽'}</span>
+            </div>
+            ${stats?`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+              <span style="font-size:11px;background:rgba(27,86,245,0.1);border:1px solid rgba(27,86,245,0.2);border-radius:4px;padding:3px 8px;color:#7C9EFF;">${stats.pts} pts</span>
+              <span style="font-size:11px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:4px;padding:3px 8px;color:#22C55E;">${stats.w}W ${stats.d}D ${stats.l}L</span>
+              <span style="font-size:11px;background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.2);border-radius:4px;padding:3px 8px;color:#F0B429;">${stats.gf} goals</span>
+            </div>`:''}
+            ${PIN.unlocked&&(m.phone||m.email)?`<div style="border-top:1px solid rgba(229,62,109,0.15);padding-top:8px;margin-top:4px;">
+              ${m.phone?`<div style="font-size:11px;color:#E53E6D;margin-bottom:2px;">&#x1F4F1; ${m.phone}</div>`:''}
+              ${m.email?`<div style="font-size:11px;color:#E53E6D;">&#x2709;&#xFE0F; ${m.email}</div>`:''}
+            </div>`:''}
+            ${PIN.unlocked?`<button onclick="requireAdmin(()=>deleteMember(${m.id}))" style="position:absolute;top:10px;right:10px;background:none;border:none;color:#4A5A9A;cursor:pointer;font-size:14px;" title="Remove">&#x2715;</button>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
 }
 
 // ── MATCH SCHEDULE ──
