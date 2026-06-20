@@ -669,6 +669,7 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
   <div id="tab-fixtures" class="section">
     <div class="section-header"><div class="section-title">All <span>Fixtures</span></div></div>
     <div class="info-bar">&#x1F3E0; Home team listed left &#xB7; &#x2708;&#xFE0F; Away team listed right. Each team plays home AND away against every group opponent.</div>
+    <div id="upcoming-matches-bar" style="margin-bottom:16px;"></div>
     <div class="stats-filters" style="margin-bottom:14px;">
       <select id="fixture-group-filter" onchange="renderFixturesAll()">
         <option value="all">All Groups</option>
@@ -1500,7 +1501,10 @@ function fixtureCardHTML(f,editable){
   const hasPen=isKO&&f.decidedBy==='penalties';
   return`<div class="fixture-card">
     <div class="fixture-header">
-      <div style="display:flex;align-items:center;gap:8px;"><span class="fixture-badge">${tag}</span>${venueTag(f)}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span class="fixture-badge">${tag}</span>${venueTag(f)}
+        ${f.matchDate&&!f.played?`<span style="font-size:10px;font-weight:700;letter-spacing:1px;color:#F0B429;background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.2);padding:3px 8px;border-radius:4px;">&#x1F4C5; ${formatMatchDate(f.matchDate,f.matchTime)}</span>`:''}
+      </div>
       ${statusHTML}
     </div>
     <div class="fixture-body">
@@ -1525,10 +1529,16 @@ function fixtureCardHTML(f,editable){
         </div>
       </div>
     </div>
-    ${editable&&f.home&&f.away?`<div class="fixture-actions">
+    ${editable&&f.home&&f.away?`<div class="fixture-actions" style="flex-wrap:wrap;gap:8px;">
+      ${!f.played&&PIN.unlocked?`<div style="display:flex;gap:6px;align-items:center;width:100%;margin-bottom:6px;">
+        <input type="date" id="date-${f.id}" value="${f.matchDate||''}" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:6px 10px;color:#E8F0FF;font-size:12px;font-family:'Inter',sans-serif;outline:none;flex:1;">
+        <input type="time" id="time-${f.id}" value="${f.matchTime||''}" style="background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:6px 10px;color:#E8F0FF;font-size:12px;font-family:'Inter',sans-serif;outline:none;flex:1;">
+        <button class="btn btn-small btn-secondary" onclick="requireAdmin(()=>saveMatchSchedule(${fid}))">&#x1F4C5; Set</button>
+      </div>`:''}
+      ${f.matchDate&&!f.played?`<div style="width:100%;font-size:11px;color:#F0B429;letter-spacing:1px;margin-bottom:4px;">&#x1F4C5; ${formatMatchDate(f.matchDate,f.matchTime)}</div>`:''}
       ${f.played
         ?`<button class="btn btn-secondary btn-small" onclick="requireAdmin(()=>${editFn}(${fid}))">Edit Score</button>
-          <button class="btn btn-small" style="background:#25D366;font-size:10px;" onclick="shareResultWhatsApp('${esc(f.home)}','${esc(f.away)}',${f.homeGoals},${f.awayGoals},'${f.decidedBy||''}')">📲 Share</button>`
+          <button class="btn btn-small" style="background:#25D366;font-size:10px;" onclick="shareResultWhatsApp('${esc(f.home)}','${esc(f.away)}',${f.homeGoals},${f.awayGoals},'${f.decidedBy||''}')">&#x1F4F2; Share</button>`
         :`<button class="btn btn-small" onclick="requireAdmin(()=>${saveFn}(${fid}))">Save Result</button>`}
     </div>`:''}
     ${needsPen?`<div class="penalty-banner">
@@ -1545,6 +1555,22 @@ function fixtureCardHTML(f,editable){
 // ── FIXTURES TAB ──
 function renderFixturesAll(){
   const el=document.getElementById('fixtures-all');if(!el)return;
+  // Upcoming matches banner
+  const upBar = document.getElementById('upcoming-matches-bar');
+  if(upBar){
+    const upcoming = getUpcomingMatches();
+    if(upcoming.length){
+      upBar.innerHTML = `<div style="background:rgba(240,180,41,0.06);border:1px solid rgba(240,180,41,0.2);border-radius:10px;padding:14px 16px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#F0B429;margin-bottom:10px;">&#x1F4C5; Upcoming Matches</div>
+        ${upcoming.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(240,180,41,0.08);">
+          <div style="font-size:13px;font-weight:600;color:#E8F0FF;">${f.home} <span style="color:#4A5A9A">vs</span> ${f.away}</div>
+          <div style="font-size:11px;color:#F0B429;letter-spacing:0.5px;">${formatMatchDate(f.matchDate,f.matchTime)}</div>
+        </div>`).join('')}
+      </div>`;
+    } else {
+      upBar.innerHTML = '';
+    }
+  }
   ensureSemis();ensureFinal();
   const allKO=[...S.knockout.semis,...(S.knockout.final?[S.knockout.final]:[])];
   if(!S.fixtures.length&&!allKO.length){el.innerHTML=`<div class="empty-state"><div class="big">&#x1F4CB;</div><p>No fixtures yet.</p><p>Go to <strong>Teams</strong> &#x2192; <strong>Generate Groups &amp; Fixtures</strong>.</p></div>`;return;}
@@ -1953,6 +1979,49 @@ function shareResultWhatsApp(homeClub, awayClub, homeGoals, awayGoals, decidedBy
 
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
+}
+
+// ── MATCH SCHEDULE ──
+function formatMatchDate(date, time){
+  if(!date) return '';
+  const d = new Date(date + (time ? 'T'+time : ''));
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const day = days[d.getDay()];
+  const month = months[d.getMonth()];
+  const dateNum = d.getDate();
+  const timeStr = time ? ` at ${time}` : '';
+  return `${day} ${dateNum} ${month}${timeStr}`;
+}
+
+function saveMatchSchedule(id){
+  const f = S.fixtures.find(x=>x.id===id) || getKO(id);
+  if(!f) return;
+  const dateEl = document.getElementById('date-'+id);
+  const timeEl = document.getElementById('time-'+id);
+  if(!dateEl) return;
+  f.matchDate = dateEl.value || null;
+  f.matchTime = timeEl ? timeEl.value : null;
+  save();
+  renderResults();
+  renderFixturesAll();
+  if(f.matchDate){
+    showToast('Schedule set — ' + formatMatchDate(f.matchDate, f.matchTime));
+  } else {
+    showToast('Schedule cleared.');
+  }
+}
+
+// Upcoming matches widget — shows next 3 scheduled matches
+function getUpcomingMatches(){
+  const now = Date.now();
+  const allFx = [...S.fixtures, ...(S.knockout.semis||[]), ...(S.knockout.final?[S.knockout.final]:[])];
+  return allFx
+    .filter(f=>!f.played && f.matchDate)
+    .map(f=>({...f, ts: new Date(f.matchDate+(f.matchTime?'T'+f.matchTime:'')).getTime()}))
+    .filter(f=>f.ts >= now - 3600000)
+    .sort((a,b)=>a.ts-b.ts)
+    .slice(0,3);
 }
 
 // ── CHAT ──
