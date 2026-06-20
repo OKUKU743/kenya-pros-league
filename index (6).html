@@ -354,6 +354,8 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
       <div class="pin-dot" id="pd1"></div>
       <div class="pin-dot" id="pd2"></div>
       <div class="pin-dot" id="pd3"></div>
+      <div class="pin-dot" id="pd4"></div>
+      <div class="pin-dot" id="pd5"></div>
     </div>
     <div class="pin-error-msg" id="pin-error"></div>
     <div class="pin-keypad">
@@ -1144,12 +1146,12 @@ const PIN=(()=>{
 // Call this before any write action. Runs callback if auth passes.
 function requireAdmin(callback){
   if(PIN.unlocked){callback();return;}
-  if(!PIN.isSet()) openPin('setup',callback);
-  else openPin('unlock',callback);
+  openPin('unlock',callback);
 }
 
 function openPin(mode,callback){
-  PIN._setMode(mode); PIN._setBuffer(''); PIN._setFirst('');
+  const safeMode=(mode==='setup'||mode==='setup-confirm')?'unlock':mode;
+  PIN._setMode(safeMode); PIN._setBuffer(''); PIN._setFirst('');
   PIN._setCB(callback||null); PIN._setFail(0);
   refreshPinUI();
   document.getElementById('pin-modal').classList.add('show');
@@ -1178,16 +1180,17 @@ function refreshPinUI(){
 }
 
 function renderDots(err){
-  for(let i=0;i<4;i++){
+  for(let i=0;i<6;i++){
     const d=document.getElementById('pd'+i);
+    if(!d) continue;
     d.className='pin-dot'+(err?' error':i<PIN.buffer.length?' filled':'');
   }
 }
 
 function pinKey(digit){
-  if(PIN.buffer.length>=4) return;
+  if(PIN.buffer.length>=6) return;
   PIN._setBuffer(PIN.buffer+digit); renderDots();
-  if(PIN.buffer.length===4) setTimeout(pinSubmit,110);
+  if(PIN.buffer.length===6) setTimeout(pinSubmit,110);
 }
 function pinDel(){PIN._setBuffer(PIN.buffer.slice(0,-1));renderDots();document.getElementById('pin-error').textContent='';}
 function pinCancel(){closePin();}
