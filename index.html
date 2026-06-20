@@ -568,6 +568,7 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
     <button class="tab" onclick="switchTab('bracket',this)">Bracket</button>
     <button class="tab" onclick="switchTab('champion',this)">Champion</button>
     <button class="tab" onclick="switchTab('announcements',this)">&#x1F4E2; News</button>
+    <button class="tab" onclick="switchTab('chat',this)">&#x1F4AC; Chat</button>
     <span id="sync-status" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7C9EFF;padding:5px 10px;border:1px solid rgba(27,86,245,0.2);border-radius:6px;">⏳ Connecting...</span>
     <button class="admin-badge locked" id="admin-badge" onclick="adminBadgeClick()">&#x1F512; Admin</button>
   </div>
@@ -739,6 +740,33 @@ header{background:rgba(6,9,28,0.96) !important;border-bottom:1px solid rgba(27,8
     <div id="champion-display"></div>
   </div>
 
+  <!-- CHAT -->
+  <div id="tab-chat" class="section">
+    <div class="section-header">
+      <div class="section-title">&#x1F4AC; <span>Group Chat</span></div>
+    </div>
+    <div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.2);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:70vh;">
+      <!-- Messages area -->
+      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="text-align:center;color:#4A5A9A;font-size:12px;padding:20px;">Loading messages...</div>
+      </div>
+      <!-- Name + input bar -->
+      <div style="border-top:1px solid rgba(27,86,245,0.15);padding:12px 16px;background:rgba(0,0,0,0.2);">
+        <div id="chat-name-row" style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">
+          <input type="text" id="chat-name-input" placeholder="Your name..." maxlength="20"
+            style="width:160px;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:8px 12px;color:#E8F0FF;font-size:13px;font-family:'Inter',sans-serif;outline:none;">
+          <span style="font-size:11px;color:#4A5A9A;letter-spacing:1px;">Set your name before chatting</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="chat-msg-input" placeholder="Type a message..." maxlength="200"
+            style="flex:1;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:8px;padding:10px 14px;color:#E8F0FF;font-size:14px;font-family:'Inter',sans-serif;outline:none;"
+            onkeydown="if(event.key==='Enter')sendChatMessage()">
+          <button class="btn" onclick="sendChatMessage()" style="padding:10px 18px;font-size:13px;">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ANNOUNCEMENTS -->
   <div id="tab-announcements" class="section">
     <div class="section-header">
@@ -900,6 +928,29 @@ onSnapshot(DOC, (snap) => {
 });
 
 setSyncStatus('loading');
+
+// ── REAL-TIME CHAT LISTENER ──
+const CHAT_COL = doc(db, 'tournament', 'chat');
+import { collection, addDoc, query, orderBy, limit, onSnapshot as onSnap2 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const CHAT_REF = collection(db, 'chat');
+
+window._fbSendChat = async function(name, message){
+  try {
+    await addDoc(CHAT_REF, {
+      name,
+      message,
+      time: Date.now()
+    });
+  } catch(e){ console.error('Chat send failed:', e); }
+};
+
+const chatQuery = query(CHAT_REF, orderBy('time','asc'), limit(100));
+onSnap2(chatQuery, (snap)=>{
+  const msgs = [];
+  snap.forEach(d => msgs.push({id:d.id, ...d.data()}));
+  window._chatMessages = msgs;
+  if(typeof renderChat === 'function') renderChat();
+});
 </script>
 <script>
 const CRESTS={
@@ -1834,7 +1885,7 @@ function switchTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   const sec=document.getElementById('tab-'+id);if(sec)sec.classList.add('active');
   if(el)el.classList.add('active');
-  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements};
+  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements,chat:renderChat};
   if(renders[id])renders[id]();
 }
 function clearAll(){
@@ -1902,6 +1953,72 @@ function shareResultWhatsApp(homeClub, awayClub, homeGoals, awayGoals, decidedBy
 
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
+}
+
+// ── CHAT ──
+let _chatName = localStorage.getItem('kpl_chat_name')||'';
+
+function sendChatMessage(){
+  const nameEl = document.getElementById('chat-name-input');
+  const msgEl = document.getElementById('chat-msg-input');
+  if(!nameEl||!msgEl) return;
+  const name = nameEl.value.trim() || _chatName;
+  const message = msgEl.value.trim();
+  if(!name){ alert('Enter your name first.'); nameEl.focus(); return; }
+  if(!message) return;
+  // Save name locally
+  _chatName = name;
+  localStorage.setItem('kpl_chat_name', name);
+  nameEl.value = name;
+  msgEl.value = '';
+  if(window._fbSendChat) window._fbSendChat(name, message);
+  else console.warn('Chat not ready');
+}
+
+function formatChatTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderChat(){
+  const el = document.getElementById('chat-messages');
+  if(!el) return;
+  // Pre-fill name if saved
+  const nameEl = document.getElementById('chat-name-input');
+  if(nameEl && _chatName && !nameEl.value) nameEl.value = _chatName;
+  const msgs = window._chatMessages || [];
+  if(!msgs.length){
+    el.innerHTML = `<div style="text-align:center;color:#4A5A9A;font-size:13px;padding:40px 20px;">
+      No messages yet. Say something! 👋
+    </div>`;
+    return;
+  }
+  const colors = ['#1B56F5','#22C55E','#F0B429','#E53E6D','#7C9EFF','#00C9FF'];
+  // Assign consistent colors per name
+  const nameColors = {};
+  let colorIdx = 0;
+  msgs.forEach(m=>{
+    if(!nameColors[m.name]){
+      nameColors[m.name] = colors[colorIdx % colors.length];
+      colorIdx++;
+    }
+  });
+  const myName = _chatName;
+  el.innerHTML = msgs.map(m=>{
+    const isMe = m.name === myName;
+    const color = nameColors[m.name]||'#7C9EFF';
+    return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};">
+      <div style="max-width:75%;${isMe?'':''}">
+        ${!isMe?`<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};margin-bottom:3px;">${m.name}</div>`:''}
+        <div style="background:${isMe?'#1B56F5':'#111840'};border-radius:${isMe?'12px 12px 3px 12px':'12px 12px 12px 3px'};padding:9px 14px;font-size:13px;color:#E8F0FF;line-height:1.4;word-break:break-word;">
+          ${m.message}
+        </div>
+        <div style="font-size:10px;color:#4A5A9A;margin-top:3px;">${formatChatTime(m.time)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // Auto scroll to bottom
+  el.scrollTop = el.scrollHeight;
 }
 
 // ── ANNOUNCEMENTS ──
