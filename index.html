@@ -1781,7 +1781,25 @@ function renderBracket(){
 }
 
 // ── CHAMPION ──
-function trophySVG(){return`<svg class="trophy-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FFD700"/><stop offset="30%" style="stop-color:#FFF5A0"/><stop offset="60%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#C8960C"/></linearGradient><linearGradient id="tg2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#C8960C"/><stop offset="50%" style="stop-color:#FFE066"/><stop offset="100%" style="stop-color:#C8960C"/></linearGradient><linearGradient id="tgs" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgba(255,255,255,0.5)"/><stop offset="100%" style="stop-color:rgba(255,255,255,0)"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="65" y="170" width="70" height="10" rx="5" fill="url(#tg2)"/><rect x="72" y="165" width="56" height="8" rx="3" fill="url(#tg1)"/><rect x="88" y="135" width="24" height="32" rx="4" fill="url(#tg1)"/><rect x="91" y="137" width="8" height="28" rx="2" fill="url(#tgs)" opacity="0.4"/><path d="M55 50 Q48 90 60 120 Q75 138 100 140 Q125 138 140 120 Q152 90 145 50 Z" fill="url(#tg1)" filter="url(#glow)"/><path d="M65 55 Q62 80 68 105 Q72 115 80 120" stroke="rgba(255,255,255,0.35)" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M55 65 Q28 65 28 90 Q28 115 55 112" stroke="url(#tg1)" stroke-width="12" fill="none" stroke-linecap="round" filter="url(#glow)"/><path d="M145 65 Q172 65 172 90 Q172 115 145 112" stroke="url(#tg1)" stroke-width="12" fill="none" stroke-linecap="round" filter="url(#glow)"/><path d="M55 65 Q30 65 30 90 Q30 113 55 112" stroke="url(#tgs)" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.4"/><text x="100" y="105" font-size="32" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-family="serif">&#x2605;</text><rect x="50" y="47" width="100" height="8" rx="4" fill="url(#tg2)"/><rect x="52" y="48" width="50" height="4" rx="2" fill="url(#tgs)" opacity="0.5"/><text x="78" y="35" font-size="14" fill="#FFD700" opacity="0.9" filter="url(#glow)">&#x2605;</text><text x="96" y="28" font-size="18" fill="#FFF5A0" opacity="1" filter="url(#glow)">&#x2605;</text><text x="116" y="35" font-size="14" fill="#FFD700" opacity="0.9" filter="url(#glow)">&#x2605;</text></svg>`;}
+function trophySVG(){
+  return `<div style="position:relative;display:inline-block;">
+    <img src="trophy.png" alt="Champion Trophy"
+      style="width:220px;height:280px;object-fit:contain;filter:drop-shadow(0 0 40px rgba(255,215,0,0.8)) drop-shadow(0 0 80px rgba(255,215,0,0.4));animation:trophyFloat 2.5s ease-in-out infinite;"
+      onerror="this.style.display='none';this.nextSibling.style.display='block'">
+    <svg style="display:none;" class="trophy-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tg1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#FFD700"/>
+          <stop offset="50%" style="stop-color:#FFF5A0"/>
+          <stop offset="100%" style="stop-color:#C8960C"/>
+        </linearGradient>
+      </defs>
+      <path d="M55 50 Q48 90 60 120 Q75 138 100 140 Q125 138 140 120 Q152 90 145 50 Z" fill="url(#tg1)"/>
+      <text x="100" y="105" font-size="32" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-family="serif">&#x1F3C6;</text>
+    </svg>
+    <div style="position:absolute;inset:-40px;background:radial-gradient(ellipse 60% 50% at 50% 60%,rgba(255,215,0,0.3) 0%,transparent 70%);border-radius:50%;animation:glowPulse 2.5s ease-in-out infinite;pointer-events:none;"></div>
+  </div>`;
+}
 
 function renderChampion(){
   const el=document.getElementById('champion-display');if(!el)return;
@@ -1797,9 +1815,10 @@ function renderChampion(){
   for(let i=0;i<20;i++){const c=colors[i%colors.length];const l=Math.random()*100;const d=Math.random()*3;const du=3+Math.random()*2;particles+=`<div class="champ-particle" style="left:${l}%;background:${c};animation-delay:${d}s;animation-duration:${du}s"></div>`;}
   el.innerHTML=`
     <div class="champ-particles">${particles}</div>
+    <canvas id="confetti-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
     <div class="champ-confetti-row">&#x1F38A; &#x1F389; &#x1F38A;</div>
     <div class="champ-label">Kenya Pro's League Champion</div>
-    <div class="champ-trophy-wrap"><div class="trophy-glow"></div>${trophySVG()}</div>
+    <div class="champ-trophy-wrap">${trophySVG()}</div>
     <div class="champ-badge-wrap">
       ${url?`<img src="${url}" class="champ-badge" alt="${champ}" onerror="this.style.display='none';if(this.nextSibling)this.nextSibling.style.display='flex'"><div class="champ-badge-fb" style="display:none">${ini}</div>`:`<div class="champ-badge-fb">${ini}</div>`}
     </div>
@@ -1816,6 +1835,7 @@ function renderChampion(){
     <div class="champ-ribbon"><span class="champ-ribbon-text">&#x1F3C6; Liceria Tournament &#x2014; Season 1 &#x1F3C6;</span></div>
     <div class="stars">&#x2605; &#x2605; &#x2605;</div>
   `;
+  setTimeout(startConfetti,400);
 }
 
 // ── UTILS ──
@@ -2202,6 +2222,56 @@ function renderAnnouncements(){
       </div>
     </div>`;
   }).join('');
+}
+
+// ── CONFETTI ──
+function startConfetti(){
+  const canvas = document.getElementById('confetti-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  const colors = ['#FFD700','#FFF5A0','#1B56F5','#E53E6D','#22C55E','#ffffff','#F0B429','#00cfff'];
+  const pieces = [];
+  for(let i=0;i<150;i++){
+    pieces.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height - canvas.height,
+      w: Math.random()*10+4,
+      h: Math.random()*6+3,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rotation: Math.random()*360,
+      speed: Math.random()*3+1,
+      spin: Math.random()*6-3,
+      swing: Math.random()*3-1.5,
+      opacity: Math.random()*0.7+0.3
+    });
+  }
+  let frame = 0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation*Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+      p.y += p.speed;
+      p.x += p.swing;
+      p.rotation += p.spin;
+      p.opacity -= 0.003;
+      if(p.y > canvas.height || p.opacity <= 0){
+        p.y = -10;
+        p.x = Math.random()*canvas.width;
+        p.opacity = Math.random()*0.7+0.3;
+      }
+    });
+    frame++;
+    if(frame < 400) requestAnimationFrame(draw);
+  }
+  draw();
 }
 
 function dismissSplash(){
