@@ -384,7 +384,12 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
 </style>
 </head>
 <body>
-
+<!-- Cookie Consent Banner -->
+<div id="cookie-banner" style="position:fixed;bottom:0;left:0;right:0;background:#06091C;color:#E8F0FF;padding:14px 20px;font-size:13px;display:flex;justify-content:space-between;align-items:center;z-index:99999;border-top:2px solid #F0B429;gap:12px;">
+  <span>🍪 This site uses cookies and collects member data for tournament management. <a href="/privacy.html" style="color:#F0B429;text-decoration:underline;">Privacy Policy</a></span>
+  <button onclick="document.getElementById('cookie-banner').style.display='none';localStorage.setItem('kpl_cookies','1')" style="background:#F0B429;color:#06091C;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-weight:700;white-space:nowrap;">Accept</button>
+</div>
+<script>if(localStorage.getItem('kpl_cookies'))document.getElementById('cookie-banner').style.display='none';</script>
 <!-- SPLASH -->
 <div id="splash" onclick="dismissSplash()">
   <div class="splash-sweep"></div>
