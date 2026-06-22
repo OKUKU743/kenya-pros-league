@@ -4,27 +4,27 @@ service cloud.firestore {
 
     match /tournament/state {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if true;
     }
 
     match /tournament/pin {
-      allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
 
     match /chat/{message} {
       allow read: if true;
-      allow write: if request.resource.data.text is string
-                   && request.resource.data.text.size() < 500;
+      allow write: if request.resource.data.message is string
+                   && request.resource.data.message.size() < 500;
     }
 
     match /members/{memberId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if true;
     }
 
     match /announcements/{ann} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if true;
     }
   }
 }
