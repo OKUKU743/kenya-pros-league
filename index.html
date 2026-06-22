@@ -1541,7 +1541,8 @@ function fixtureCardHTML(f,editable){
         </div>
       </div>
     </div>
-    ${editable&&f.home&&f.away?`<div class="fixture-actions">
+    ${editable&&f.home&&f.away?`<div class="fixture-actions" style="flex-wrap:wrap;">
+      ${!f.played&&PIN.unlocked?`<div style="display:flex;gap:6px;margin-bottom:8px;"><input type="date" id="date-${f.id}" value="${f.matchDate||''}" style="flex:1;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:6px 10px;color:#E8F0FF;font-size:12px;outline:none;"><input type="time" id="time-${f.id}" value="${f.matchTime||''}" style="flex:1;background:#06091C;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:6px 10px;color:#E8F0FF;font-size:12px;outline:none;"><button class="btn btn-small btn-secondary" onclick="requireAdmin(()=>saveMatchSchedule(${fid}))">Set</button></div>`:''}
       ${f.played
         ?`<button class="btn btn-secondary btn-small" onclick="requireAdmin(()=>${editFn}(${fid}))">Edit Score</button>`
         :`<button class="btn btn-small" onclick="requireAdmin(()=>${saveFn}(${fid}))">Save Result</button>`}
@@ -2599,3 +2600,4 @@ setTimeout(updateNotifBtn, 500);
 </body>
 </html>
 <!-- build Sun Jun 21 12:52:14 UTC 2026 -->
+
