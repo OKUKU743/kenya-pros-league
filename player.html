@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Profile — Kenya Pro's League</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#06091C;--card:#0A0E28;--raised:#111840;--blue:#1B56F5;--gold:#F0B429;--purple:#7B2FF7;--white:#E8F0FF;--grey:#7C9EFF;--dim:#4A5A9A;--green:#22C55E;--red:#E53E6D;}
+body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-height:100vh;}
+
+/* NAV */
+nav{background:rgba(6,9,28,0.97);border-bottom:1px solid rgba(27,86,245,0.15);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);}
+.nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;color:var(--white);}
+.nav-logo span{color:var(--gold);}
+.nav-back{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.nav-back:hover{color:var(--white);}
+
+/* HERO */
+.hero{position:relative;min-height:60vh;display:flex;align-items:flex-end;overflow:hidden;padding:40px 32px;}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(27,86,245,0.2) 0%,rgba(123,47,247,0.15) 50%,rgba(6,9,28,0.9) 100%);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(27,86,245,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(27,86,245,0.05) 1px,transparent 1px);background-size:40px 40px;}
+.hero-badge-bg{position:absolute;right:0;top:0;bottom:0;width:55%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.hero-badge-giant{width:min(420px,80%);height:min(420px,80%);object-fit:contain;opacity:0.12;filter:blur(2px);}
+.hero-badge-giant-fb{width:min(420px,80%);height:min(420px,80%);border-radius:50%;background:rgba(27,86,245,0.08);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:min(140px,20vw);color:rgba(27,86,245,0.15);}
+.hero-content{position:relative;z-index:2;max-width:600px;}
+.hero-group-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.3);border-radius:20px;padding:5px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.hero-badge-main{width:80px;height:80px;object-fit:contain;border-radius:12px;margin-bottom:16px;display:block;filter:drop-shadow(0 0 20px rgba(27,86,245,0.4));}
+.hero-badge-main-fb{width:80px;height:80px;border-radius:50%;background:#111840;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;color:var(--grey);margin-bottom:16px;border:2px solid rgba(27,86,245,0.3);}
+.hero-player{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(14px,2vw,16px);letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
+.hero-club{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(40px,8vw,80px);letter-spacing:2px;text-transform:uppercase;line-height:0.95;color:var(--white);}
+.hero-number{position:absolute;right:32px;bottom:32px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(80px,15vw,160px);color:rgba(27,86,245,0.1);line-height:1;pointer-events:none;z-index:1;}
+
+/* STATS STRIP */
+.stats-strip{background:rgba(10,14,40,0.9);border-top:1px solid rgba(27,86,245,0.15);border-bottom:1px solid rgba(27,86,245,0.15);padding:20px 32px;}
+.stats-strip-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:16px;}
+.strip-stat{text-align:center;}
+.strip-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;color:var(--gold);}
+.strip-lbl{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+
+/* MAIN LAYOUT */
+.main{max-width:900px;margin:0 auto;padding:40px 24px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;}
+@media(max-width:640px){.two-col{grid-template-columns:1fr;}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid rgba(27,86,245,0.12);border-radius:14px;overflow:hidden;}
+.card-header{padding:14px 18px;border-bottom:1px solid rgba(27,86,245,0.1);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);}
+.card-body{padding:18px;}
+
+/* STAT TABLE */
+.stat-table{width:100%;border-collapse:collapse;}
+.stat-table tr{border-bottom:1px solid rgba(27,86,245,0.06);}
+.stat-table tr:last-child{border-bottom:none;}
+.stat-table td{padding:11px 0;font-size:13px;}
+.stat-table td:first-child{color:var(--dim);letter-spacing:0.5px;}
+.stat-table td:last-child{text-align:right;font-weight:600;color:var(--white);}
+.stat-table td:last-child.gold{color:var(--gold);}
+.stat-table td:last-child.green{color:var(--green);}
+.stat-table td:last-child.red{color:var(--red);}
+
+/* FORM */
+.form-row{display:flex;gap:6px;flex-wrap:wrap;}
+.form-pill{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:12px;font-weight:700;}
+.form-W{background:rgba(34,197,94,0.2);color:#22C55E;}
+.form-D{background:rgba(124,158,255,0.1);color:#7C9EFF;}
+.form-L{background:rgba(229,62,109,0.12);color:#E53E6D;}
+
+/* MATCH HISTORY */
+.match-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(27,86,245,0.06);}
+.match-row:last-child{border-bottom:none;}
+.match-result-badge{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;flex-shrink:0;}
+.mr-W{background:rgba(34,197,94,0.15);color:#22C55E;}
+.mr-D{background:rgba(124,158,255,0.1);color:#7C9EFF;}
+.mr-L{background:rgba(229,62,109,0.1);color:#E53E6D;}
+.match-teams{flex:1;font-size:13px;color:var(--white);}
+.match-score{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--white);letter-spacing:2px;}
+.match-meta{font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:0.5px;}
+
+/* PLAYER NAV */
+.player-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px;}
+.player-nav-btn{background:var(--card);border:1px solid rgba(27,86,245,0.12);border-radius:12px;padding:16px;text-decoration:none;transition:border-color 0.2s;display:block;}
+.player-nav-btn:hover{border-color:rgba(27,86,245,0.4);}
+.player-nav-dir{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.player-nav-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:1px;text-transform:uppercase;color:var(--white);}
+.player-nav-club{font-size:12px;color:var(--grey);margin-top:2px;}
+.player-nav-btn.right{text-align:right;}
+
+/* SHARE */
+.share-bar{background:rgba(37,211,102,0.06);border:1px solid rgba(37,211,102,0.2);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:32px;flex-wrap:wrap;}
+.share-text{font-size:13px;color:var(--grey);}
+.share-text strong{color:var(--white);}
+.btn-whatsapp{background:#25D366;color:#000;border:none;border-radius:8px;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity 0.2s;text-decoration:none;}
+.btn-whatsapp:hover{opacity:0.85;}
+
+/* EMPTY */
+.empty{color:var(--dim);font-size:13px;padding:20px 0;text-align:center;}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:16px;}
+.loading-badge{width:60px;height:60px;border-radius:50%;border:3px solid rgba(27,86,245,0.2);border-top-color:var(--blue);animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-badge"></div>
+  <div class="loading-text">Loading Profile...</div>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo">KPL <span>&#x2605;</span></a>
+  <a href="index.html" class="nav-back">&#x2190; Back to League</a>
+</nav>
+
+<div id="hero-wrap"></div>
+<div id="stats-strip-wrap"></div>
+<div class="main" id="main-wrap" style="display:none;">
+  <div id="share-bar-wrap"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header">Season Statistics</div>
+      <div class="card-body"><table class="stat-table" id="stat-table"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-header">Current Form</div>
+      <div class="card-body">
+        <div class="form-row" id="form-row"></div>
+        <div style="margin-top:20px;">
+          <div class="card-header" style="padding:0 0 10px;border:none;">Head-to-Head Record</div>
+          <table class="stat-table" id="h2h-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:32px;">
+    <div class="card-header">Match History</div>
+    <div class="card-body" id="match-history"></div>
+  </div>
+  <div id="player-nav-wrap"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCtZHFhuy768Rp4trdsAf9lf3OeakbhliY",
+  authDomain: "kenya-pros-league.firebaseapp.com",
+  projectId: "kenya-pros-league",
+  storageBucket: "kenya-pros-league.firebasestorage.app",
+  messagingSenderId: "839938362376",
+  appId: "1:839938362376:web:00d9052cd5136e274295bd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const DOC = doc(db, 'tournament', 'state');
+
+const CRESTS={
+  'Arsenal':'https://crests.football-data.org/57.png','Bayern':'https://crests.football-data.org/5.png','Liverpool':'https://crests.football-data.org/64.png','Chelsea':'https://crests.football-data.org/61.png','Man City':'https://crests.football-data.org/65.png','Man United':'https://crests.football-data.org/66.png','Tottenham':'https://crests.football-data.org/73.png','Spurs':'https://crests.football-data.org/73.png','Aston Villa':'https://crests.football-data.org/58.png','West Ham':'https://crests.football-data.org/563.png','Brighton':'https://crests.football-data.org/397.png','Everton':'https://crests.football-data.org/62.png','Leicester':'https://crests.football-data.org/338.png','Wolves':'https://crests.football-data.org/76.png','Crystal Palace':'https://crests.football-data.org/354.png','Newcastle':'https://crests.football-data.org/67.png',
+  'Barcelona':'https://crests.football-data.org/81.png','Real Madrid':'https://crests.football-data.org/86.png','Atletico Madrid':'https://crests.football-data.org/78.png','Sevilla':'https://crests.football-data.org/559.png','Valencia':'https://crests.football-data.org/95.png','Villarreal':'https://crests.football-data.org/94.png','Real Sociedad':'https://crests.football-data.org/92.png','Athletic Bilbao':'https://crests.football-data.org/77.png','Real Betis':'https://crests.football-data.org/90.png',
+  'Bayern':'https://crests.football-data.org/5.png','Dortmund':'https://crests.football-data.org/4.png','Leverkusen':'https://crests.football-data.org/3.png','RB Leipzig':'https://crests.football-data.org/721.png','Frankfurt':'https://crests.football-data.org/19.png','Wolfsburg':'https://crests.football-data.org/11.png','Freiburg':'https://crests.football-data.org/17.png','Schalke':'https://crests.football-data.org/6.png',
+  'AC Milan':'https://crests.football-data.org/98.png','Inter':'https://crests.football-data.org/108.png','Juventus':'https://crests.football-data.org/109.png','Atalanta':'https://crests.football-data.org/102.png','Roma':'https://crests.football-data.org/100.png','Napoli':'https://crests.football-data.org/113.png','Lazio':'https://crests.football-data.org/110.png','Fiorentina':'https://crests.football-data.org/99.png','Torino':'https://crests.football-data.org/586.png',
+  'PSG':'https://crests.football-data.org/524.png','Monaco':'https://crests.football-data.org/548.png','Marseille':'https://crests.football-data.org/516.png','Lyon':'https://crests.football-data.org/523.png','Lille':'https://crests.football-data.org/521.png','Nice':'https://crests.football-data.org/522.png','Rennes':'https://crests.football-data.org/529.png','Lens':'https://crests.football-data.org/532.png',
+  'Ajax':'https://crests.football-data.org/678.png','Porto':'https://crests.football-data.org/503.png','Benfica':'https://crests.football-data.org/1903.png','Celtic':'https://crests.football-data.org/732.png','Rangers':'https://crests.football-data.org/733.png','Club Brugge':'https://crests.football-data.org/851.png','Galatasaray':'https://crests.football-data.org/351.png',
+  'Brazil':'https://flagcdn.com/w80/br.png','Argentina':'https://flagcdn.com/w80/ar.png','France':'https://flagcdn.com/w80/fr.png','Germany':'https://flagcdn.com/w80/de.png','Spain':'https://flagcdn.com/w80/es.png','England':'https://flagcdn.com/w80/gb-eng.png','Italy':'https://flagcdn.com/w80/it.png','Portugal':'https://flagcdn.com/w80/pt.png','Netherlands':'https://flagcdn.com/w80/nl.png','Belgium':'https://flagcdn.com/w80/be.png','Croatia':'https://flagcdn.com/w80/hr.png','Denmark':'https://flagcdn.com/w80/dk.png',
+  'Morocco':'https://flagcdn.com/w80/ma.png','Senegal':'https://flagcdn.com/w80/sn.png','Nigeria':'https://flagcdn.com/w80/ng.png','Ghana':'https://flagcdn.com/w80/gh.png','Cameroon':'https://flagcdn.com/w80/cm.png','Egypt':'https://flagcdn.com/w80/eg.png','Tunisia':'https://flagcdn.com/w80/tn.png','Algeria':'https://flagcdn.com/w80/dz.png','Ivory Coast':'https://flagcdn.com/w80/ci.png','Mali':'https://flagcdn.com/w80/ml.png','South Africa':'https://flagcdn.com/w80/za.png','Kenya':'https://flagcdn.com/w80/ke.png','Tanzania':'https://flagcdn.com/w80/tz.png','Uganda':'https://flagcdn.com/w80/ug.png',
+  'Japan':'https://flagcdn.com/w80/jp.png','South Korea':'https://flagcdn.com/w80/kr.png','Australia':'https://flagcdn.com/w80/au.png','USA':'https://flagcdn.com/w80/us.png','Mexico':'https://flagcdn.com/w80/mx.png','Brazil':'https://flagcdn.com/w80/br.png',
+};
+
+const GN=['A','B','C','D'];
+const params = new URLSearchParams(window.location.search);
+const targetClub = decodeURIComponent(params.get('club')||'');
+
+function ini(club){return(club||'?').split(/\s+/).slice(0,2).map(w=>w[0]?w[0].toUpperCase():'').join('');}
+
+function badgeHTML(club, size=44){
+  const url = CRESTS[club];
+  const i = ini(club);
+  if(url) return `<img src="${url}" style="width:${size}px;height:${size}px;object-fit:contain;border-radius:8px;flex-shrink:0;" onerror="this.style.display='none';if(this.nextSibling)this.nextSibling.style.display='flex'"><div style="display:none;width:${size}px;height:${size}px;border-radius:50%;background:#111840;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:${Math.round(size/2.5)}px;color:#7C9EFF;">${i}</div>`;
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#111840;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:${Math.round(size/2.5)}px;color:#7C9EFF;">${i}</div>`;
+}
+
+function getGroupStats(S){
+  const res={};
+  GN.forEach(g=>{
+    const clubs=S.groups[g]||[];const stats={};
+    clubs.forEach(c=>{stats[c]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,cs:0,form:[],h2h:{}};});
+    (S.fixtures||[]).filter(f=>f.group===g&&f.played).sort((a,b)=>a.round-b.round||a.id-b.id).forEach(f=>{
+      const h=stats[f.home],a=stats[f.away];if(!h||!a)return;
+      h.p++;a.p++;h.gf+=f.homeGoals;h.ga+=f.awayGoals;a.gf+=f.awayGoals;a.ga+=f.homeGoals;
+      if(f.awayGoals===0)h.cs++;if(f.homeGoals===0)a.cs++;
+      if(f.homeGoals>f.awayGoals){h.w++;h.pts+=3;h.form.push('W');a.l++;a.form.push('L');h.h2h[f.away]=(h.h2h[f.away]||0)+1;}
+      else if(f.homeGoals<f.awayGoals){a.w++;a.pts+=3;a.form.push('W');h.l++;h.form.push('L');a.h2h[f.home]=(a.h2h[f.home]||0)+1;}
+      else{h.d++;h.pts++;h.form.push('D');a.d++;a.pts++;a.form.push('D');}
+    });
+    res[g]=stats;
+  });
+  return res;
+}
+
+function getPlayerMatches(S, club){
+  return (S.fixtures||[]).filter(f=>f.played&&(f.home===club||f.away===club))
+    .sort((a,b)=>a.round-b.round||a.id-b.id);
+}
+
+function matchResult(f, club){
+  const isHome = f.home===club;
+  const gf = isHome?f.homeGoals:f.awayGoals;
+  const ga = isHome?f.awayGoals:f.homeGoals;
+  if(gf>ga)return'W';if(gf<ga)return'L';return'D';
+}
+
+onSnapshot(DOC,(snap)=>{
+  if(!snap.exists())return;
+  let S;
+  try{S=JSON.parse(snap.data().data);}catch(e){return;}
+  if(!S)return;
+  S.teams=Array.isArray(S.teams)?S.teams:[];
+  S.fixtures=Array.isArray(S.fixtures)?S.fixtures:[];
+  S.groups=S.groups||{};
+
+  // Find the team
+  const team = S.teams.find(t=>t.club===targetClub);
+  if(!team){
+    document.getElementById('loading').innerHTML=`<div style="text-align:center;padding:40px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:#4A5A9A;margin-bottom:12px;">Player Not Found</div><a href="index.html" style="color:#7C9EFF;font-size:14px;">Back to League</a></div>`;
+    return;
+  }
+
+  // Find group
+  let playerGroup = '';
+  GN.forEach(g=>{if((S.groups[g]||[]).includes(targetClub))playerGroup=g;});
+
+  // Get stats
+  const gs = getGroupStats(S);
+  const stats = gs[playerGroup]?.[targetClub]||{p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,cs:0,form:[],h2h:{}};
+  const gd = stats.gf - stats.ga;
+
+  // All teams for navigation
+  const allTeams = S.teams;
+  const idx = allTeams.findIndex(t=>t.club===targetClub);
+  const prev = allTeams[idx-1]||null;
+  const next = allTeams[idx+1]||null;
+
+  // HERO
+  const url = CRESTS[targetClub];
+  const heroWrap = document.getElementById('hero-wrap');
+  heroWrap.innerHTML = `
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-badge-bg">
+        ${url
+          ? `<img src="${url}" class="hero-badge-giant" onerror="this.style.display='none';if(this.nextSibling)this.nextSibling.style.display='flex'">`
+          : ''
+        }
+        <div class="hero-badge-giant-fb" ${url?'style="display:none"':''}>${ini(targetClub)}</div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-group-badge">&#x1F3C6; Group ${playerGroup||'—'}</div>
+        ${url
+          ? `<img src="${url}" class="hero-badge-main" onerror="this.style.display='none';if(this.nextSibling)this.nextSibling.style.display='flex'"><div class="hero-badge-main-fb" style="display:none">${ini(targetClub)}</div>`
+          : `<div class="hero-badge-main-fb">${ini(targetClub)}</div>`
+        }
+        <div class="hero-player">&#x1F464; ${team.player}</div>
+        <div class="hero-club">${targetClub}</div>
+      </div>
+      <div class="hero-number">${stats.pts}</div>
+    </div>`;
+
+  // STATS STRIP
+  document.getElementById('stats-strip-wrap').innerHTML = `
+    <div class="stats-strip">
+      <div class="stats-strip-inner">
+        <div class="strip-stat"><div class="strip-val">${stats.pts}</div><div class="strip-lbl">Points</div></div>
+        <div class="strip-stat"><div class="strip-val">${stats.p}</div><div class="strip-lbl">Played</div></div>
+        <div class="strip-stat"><div class="strip-val" style="color:#22C55E">${stats.w}</div><div class="strip-lbl">Wins</div></div>
+        <div class="strip-stat"><div class="strip-val" style="color:#7C9EFF">${stats.d}</div><div class="strip-lbl">Draws</div></div>
+        <div class="strip-stat"><div class="strip-val" style="color:#E53E6D">${stats.l}</div><div class="strip-lbl">Losses</div></div>
+        <div class="strip-stat"><div class="strip-val">${gd>0?'+':''}${gd}</div><div class="strip-lbl">Goal Diff</div></div>
+      </div>
+    </div>`;
+
+  // STAT TABLE
+  document.getElementById('stat-table').innerHTML = [
+    ['Matches Played', stats.p, ''],
+    ['Wins', stats.w, 'green'],
+    ['Draws', stats.d, ''],
+    ['Losses', stats.l, 'red'],
+    ['Goals Scored', stats.gf, 'gold'],
+    ['Goals Conceded', stats.ga, stats.ga>stats.gf?'red':''],
+    ['Goal Difference', (gd>0?'+':'')+gd, gd>0?'green':gd<0?'red':''],
+    ['Clean Sheets', stats.cs, stats.cs>0?'gold':''],
+    ['Points', stats.pts, 'gold'],
+  ].map(([lbl,val,cls])=>`<tr><td>${lbl}</td><td class="${cls}">${val}</td></tr>`).join('');
+
+  // FORM
+  const form = stats.form||[];
+  document.getElementById('form-row').innerHTML = form.length
+    ? form.slice(-10).map(r=>`<span class="form-pill form-${r}">${r}</span>`).join('')
+    : `<span style="color:var(--dim);font-size:13px;">No matches played yet.</span>`;
+
+  // H2H
+  const h2h = stats.h2h||{};
+  const h2hKeys = Object.keys(h2h);
+  document.getElementById('h2h-table').innerHTML = h2hKeys.length
+    ? h2hKeys.map(opp=>`<tr><td>${opp}</td><td class="green">${h2h[opp]} win${h2h[opp]!==1?'s':''}</td></tr>`).join('')
+    : `<tr><td colspan="2" style="color:var(--dim);padding:12px 0;text-align:center;font-size:13px;">No H2H data yet.</td></tr>`;
+
+  // MATCH HISTORY
+  const matches = getPlayerMatches(S, targetClub);
+  document.getElementById('match-history').innerHTML = matches.length
+    ? matches.map(f=>{
+        const isHome = f.home===targetClub;
+        const opp = isHome?f.away:f.home;
+        const gf = isHome?f.homeGoals:f.awayGoals;
+        const ga = isHome?f.awayGoals:f.homeGoals;
+        const r = gf>ga?'W':gf<ga?'L':'D';
+        return `<div class="match-row">
+          <div class="match-result-badge mr-${r}">${r}</div>
+          <div style="flex-shrink:0;">${badgeHTML(opp,28)}</div>
+          <div class="match-teams">
+            <div>${isHome?`<strong>${targetClub}</strong> vs ${opp}`:`${opp} vs <strong>${targetClub}</strong>`}</div>
+            <div class="match-meta">Group ${f.group} · Leg ${f.leg} · MD ${f.round}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="match-score">${isHome?`${f.homeGoals}–${f.awayGoals}`:`${f.awayGoals}–${f.homeGoals}`}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : `<div class="empty">No matches played yet.</div>`;
+
+  // SHARE BAR
+  const shareMsg = `🏆 *KPL PLAYER CARD*\n━━━━━━━━━━━━━━━━\n⚽ ${team.player} (${targetClub})\n📊 Group ${playerGroup||'—'}\n\n🏅 Points: ${stats.pts}\n✅ Wins: ${stats.w} | 🤝 Draws: ${stats.d} | ❌ Losses: ${stats.l}\n⚽ GF: ${stats.gf} | GA: ${stats.ga} | GD: ${gd>0?'+':''}${gd}\n🧤 Clean Sheets: ${stats.cs}\n📈 Form: ${form.slice(-5).join(' ')}\n━━━━━━━━━━━━━━━━\n🔗 https://okuku743.github.io/kenya-pros-league`;
+  document.getElementById('share-bar-wrap').innerHTML = `
+    <div class="share-bar">
+      <div class="share-text">Share <strong>${team.player}'s</strong> season card on WhatsApp</div>
+      <a href="https://wa.me/?text=${encodeURIComponent(shareMsg)}" target="_blank" class="btn-whatsapp">&#x1F4AC; Share Stats</a>
+    </div>`;
+
+  // PLAYER NAV
+  document.getElementById('player-nav-wrap').innerHTML = `
+    <div class="player-nav">
+      ${prev
+        ? `<a href="player.html?club=${encodeURIComponent(prev.club)}" class="player-nav-btn">
+            <div class="player-nav-dir">&#x2190; Previous</div>
+            <div class="player-nav-name">${prev.club}</div>
+            <div class="player-nav-club">&#x1F464; ${prev.player}</div>
+          </a>`
+        : `<div></div>`
+      }
+      ${next
+        ? `<a href="player.html?club=${encodeURIComponent(next.club)}" class="player-nav-btn right">
+            <div class="player-nav-dir">Next &#x2192;</div>
+            <div class="player-nav-name">${next.club}</div>
+            <div class="player-nav-club">&#x1F464; ${next.player}</div>
+          </a>`
+        : `<div></div>`
+      }
+    </div>`;
+
+  // Show page
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main-wrap').style.display='block';
+});
+</script>
+</body>
+</html>

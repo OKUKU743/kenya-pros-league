@@ -1444,6 +1444,7 @@ function renderTeams(){
     <div class="badge-wrap">${teamBadge(t.club)}</div>
     <div class="team-club">${t.club}</div>
     <div class="team-player">&#x1F464; ${t.player}</div>
+<a href="player.html?club=${encodeURIComponent(t.club)}" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7C9EFF;text-decoration:none;border:1px solid rgba(27,86,245,0.25);border-radius:6px;padding:4px 10px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(27,86,245,0.6)';this.style.color='#E8F0FF'" onmouseout="this.style.borderColor='rgba(27,86,245,0.25)';this.style.color='#7C9EFF'">&#x1F4CA; View Profile</a>
   </div>`).join('');
 }
 
