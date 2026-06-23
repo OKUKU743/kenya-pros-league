@@ -941,7 +941,38 @@ window._fbSendChat = async function(name, message){
     });
   } catch(e){ console.error('Chat send failed:', e); }
 };
+// ── MEMBERS FIRESTORE COLLECTION ──
+const MEMBERS_REF = collection(db, 'members');
+import { setDoc as _setDoc, deleteDoc, doc as _doc, onSnapshot as _onSnap3 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+window._fbAddMember = async function(member){
+  try {
+    await _setDoc(_doc(db, 'members', String(member.id)), member);
+  } catch(e){ console.error('Member save failed:', e); }
+};
+
+window._fbDeleteMember = async function(id){
+  try {
+    await deleteDoc(_doc(db, 'members', String(id)));
+  } catch(e){ console.error('Member delete failed:', e); }
+};
+
+window._fbUpdateMember = async function(member){
+  try {
+    await _setDoc(_doc(db, 'members', String(member.id)), member);
+  } catch(e){ console.error('Member update failed:', e); }
+};
+
+// Real-time members listener
+import { query as _query2, orderBy as _orderBy2 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const membersQuery = _query2(MEMBERS_REF, _orderBy2('joinedAt','asc'));
+_onSnap3(membersQuery, (snap)=>{
+  const members = [];
+  snap.forEach(d => members.push({...d.data()}));
+  S.members = members;
+  if(typeof renderMembers === 'function') renderMembers();
+  if(typeof renderTeams === 'function') renderTeams();
+});
 const chatQuery = query(CHAT_REF, orderBy('time','asc'), limit(100));
 onSnap2(chatQuery, (snap)=>{
   const msgs = [];
@@ -2129,44 +2160,30 @@ function addMember(){
   const email = document.getElementById('mem-email')?.value.trim();
   if(!username){ alert('Enter your game username.'); return; }
   if(!name){ alert('Enter your real name.'); return; }
-  if(!S.members) S.members = [];
-  // Check username not taken
-  if(S.members.find(m=>m.username.toLowerCase()===username.toLowerCase())){
+  if((S.members||[]).find(m=>m.username.toLowerCase()===username.toLowerCase())){
     alert('That username is already taken. Choose another.');
     return;
   }
-  S.members.push({
-    id: Date.now(),
-    username,  // public
-    name,      // admin only
-    phone,     // admin only
-    email,     // admin only
-    role: 'player',
-    joinedAt: new Date().toISOString()
-  });
+  const member={id:Date.now(),username,name,phone,email,role:'player',joinedAt:new Date().toISOString()};
   ['mem-username','mem-name','mem-phone','mem-email'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.value = '';
+    const el=document.getElementById(id);
+    if(el) el.value='';
   });
-  save();
-  renderMembers();
-  showToast(username + ' joined the league!');
+  if(window._fbAddMember) window._fbAddMember(member);
+  showToast(username+' joined the league!');
 }
 
 function setMemberRole(id, role){
   const m = (S.members||[]).find(m=>m.id===id);
   if(!m) return;
-  m.role = role;
-  save();
-  renderMembers();
+  const updated = {...m, role};
+  if(window._fbUpdateMember) window._fbUpdateMember(updated);
   showToast(m.username + ' is now ' + (role==='admin'?'Admin':'Player'));
 }
 
 function deleteMember(id){
   if(!confirm('Remove this member?')) return;
-  S.members = (S.members||[]).filter(m=>m.id!==id);
-  save();
-  renderMembers();
+  if(window._fbDeleteMember) window._fbDeleteMember(id);
 }
 
 function renderMembers(){
@@ -2606,6 +2623,7 @@ setTimeout(updateNotifBtn, 500);
 </body>
 </html>
 <!-- build Sun Jun 21 12:52:14 UTC 2026 -->
+
 
 
 
