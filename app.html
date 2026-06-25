@@ -1833,6 +1833,7 @@ function renderGroups(){
 // ── LEAGUE TABLE ──
 function renderTable(){
   const el=document.getElementById('table-container');if(!el)return;
+  if(S.tournamentFormat==='league'){renderLeagueTable();return;}
   const gs=getGroupStats();
   const hasTeams=GN.some(g=>(S.groups[g]||[]).length>0);
   if(!hasTeams){el.innerHTML=`<div class="empty-state"><div class="big">&#x1F4CA;</div><p>Generate groups first.</p></div>`;return;}
