@@ -435,6 +435,27 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
   </div>
 </div>
 
+<!-- FORMAT MODAL -->
+<div id="fmt-modal" style="position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:rgba(4,6,42,0.92);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity 0.25s,visibility 0.25s;">
+<div style="background:#0A0E28;border:1px solid rgba(27,86,245,0.2);border-top:2px solid #F0B429;border-radius:16px;padding:32px 28px;width:min(400px,90vw);text-align:center;">
+<div style="font-size:36px;margin-bottom:12px;">&#x2699;&#xFE0F;</div>
+<div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Select <span style="color:#F0B429;">Format</span></div>
+<div style="font-size:12px;color:#4A5A9A;margin-bottom:24px;">How will this tournament be played?</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+<button onclick="selectFormat('championship')" style="background:rgba(27,86,245,0.08);border:2px solid rgba(27,86,245,0.3);border-radius:12px;padding:20px 10px;cursor:pointer;color:#E8F0FF;">
+<div style="font-size:28px;margin-bottom:6px;">&#x1F3C6;</div>
+<div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:15px;letter-spacing:1px;text-transform:uppercase;">Championship</div>
+<div style="font-size:11px;color:#4A5A9A;margin-top:4px;line-height:1.4;">Groups + Knockout<br>Semi-finals and Final</div>
+</button>
+<button onclick="selectFormat('league')" style="background:rgba(240,180,41,0.06);border:2px solid rgba(240,180,41,0.25);border-radius:12px;padding:20px 10px;cursor:pointer;color:#E8F0FF;">
+<div style="font-size:28px;margin-bottom:6px;">&#x1F4CB;</div>
+<div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:15px;letter-spacing:1px;text-transform:uppercase;">League</div>
+<div style="font-size:11px;color:#4A5A9A;margin-top:4px;line-height:1.4;">Home and away<br>Top team wins in 48hrs</div>
+</button>
+</div>
+<button onclick="closeFmt()" style="background:none;border:none;color:#4A5A9A;font-size:12px;cursor:pointer;padding:6px 14px;font-family:Inter,sans-serif;">Cancel</button>
+</div>
+</div>
 <!-- HEADER -->
 <header>
   <div class="logo">
@@ -1485,6 +1506,13 @@ function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Mat
 function generateGroups(){
   if(S.teams.length<8){alert('Add at least 8 teams.');return;}
   if(S.fixtures.length>0&&!confirm('Replace all groups, fixtures and results?')) return;
+  var fm=document.getElementById('fmt-modal');fm.style.opacity='1';fm.style.visibility='visible';
+}
+function closeFmt(){var m=document.getElementById('fmt-modal');m.style.opacity='0';m.style.visibility='hidden';}
+function selectFormat(fmt){closeFmt();S.tournamentFormat=fmt;if(fmt==='league'){generateLeague();}else{generateChampionship();}}
+function generateLeague(){var clubs=S.teams.map(function(t){return t.club;});S.groups={};S.ties={};S.knockout={semis:[],final:null};var fixtures=[];var id=0;for(var i=0;i<clubs.length;i++){for(var j=i+1;j<clubs.length;j++){fixtures.push({id:id++,group:'L',home:clubs[i],away:clubs[j],homeGoals:null,awayGoals:null,played:false,round:1,leg:1});fixtures.push({id:id++,group:'L',home:clubs[j],away:clubs[i],homeGoals:null,awayGoals:null,played:false,round:2,leg:2});}}S.fixtures=fixtures;S.round=1;S.leagueStartTime=Date.now();S.leagueDeadline=Date.now()+(48*60*60*1000);save();renderAll();showToast('League generated - 48hr countdown started!');switchTab('fixtures',document.querySelectorAll('.tab')[2]);}
+function generateChampionship(){
+  if(S.teams.length<8){alert('Add at least 8 teams.');return;}
   const clubs=shuffle(S.teams.map(t=>t.club));
   const groups={A:[],B:[],C:[],D:[]};
   let gi=0,dir=1;
@@ -1703,7 +1731,77 @@ function topTied(table){if(table.length<2)return false;const a=table[0],b=table[
 function pickTie(g,club){requireAdmin(()=>{S.ties[g]=club;save();renderGroups();});}
 function getGroupWinner(g){const t=getGroupStats()[g];if(!t||!t.length)return null;if(topTied(t))return S.ties[g]||null;return t[0].club;}
 
+function getLeagueTable(){
+  var clubs=S.teams.map(function(t){return t.club;});
+  var stats={};
+  clubs.forEach(function(c){
+    stats[c]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,cs:0,form:[],player:getPlayer(c)};
+  });
+  S.fixtures.filter(function(f){return f.group==='L'&&f.played;}).forEach(function(f){
+    var h=stats[f.home],a=stats[f.away];if(!h||!a)return;
+    h.p++;a.p++;h.gf+=f.homeGoals;h.ga+=f.awayGoals;a.gf+=f.awayGoals;a.ga+=f.homeGoals;
+    if(f.awayGoals===0)h.cs++;if(f.homeGoals===0)a.cs++;
+    if(f.homeGoals>f.awayGoals){h.w++;h.pts+=3;h.form.push('W');a.l++;a.form.push('L');}
+    else if(f.homeGoals<f.awayGoals){a.w++;a.pts+=3;a.form.push('W');h.l++;h.form.push('L');}
+    else{h.d++;h.pts++;h.form.push('D');a.d++;a.pts++;a.form.push('D');}
+  });
+  return Object.keys(stats).map(function(club){
+    var s=stats[club];return Object.assign({club:club},s,{gd:s.gf-s.ga});
+  }).sort(function(a,b){return b.pts-a.pts||b.gd-a.gd||b.gf-a.gf;});
+}
+function renderLeagueTable(){
+  var el=document.getElementById('groups-container');if(!el)return;
+  var table=getLeagueTable();
+  var allPlayed=S.fixtures.filter(function(f){return f.group==='L';}).every(function(f){return f.played;});
+  var deadlinePassed=S.leagueDeadline&&Date.now()>S.leagueDeadline;
+  var winner=(allPlayed||deadlinePassed)&&table.length?table[0]:null;
+  var ms=S.leagueDeadline?S.leagueDeadline-Date.now():0;
+  var h2=Math.floor(ms/3600000),m2=Math.floor((ms%3600000)/60000),s2=Math.floor((ms%60000)/1000);
+  var cdHTML=ms>0
+    ?'<div style="background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.25);border-radius:8px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;"><span style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#F0B429;">&#x23F0; Season Deadline</span><span id="league-cd" style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:22px;color:#E8F0FF;letter-spacing:2px;">'
+    +String(h2).padStart(2,'0')+':'+String(m2).padStart(2,'0')+':'+String(s2).padStart(2,'0')+'</span></div>'
+    :(deadlinePassed?'<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-family:Barlow Condensed,sans-serif;font-weight:700;color:#22C55E;">&#x2705; SEASON COMPLETE</div>':'')
+  ;
+  var winnerHTML=winner
+    ?'<div style="background:linear-gradient(135deg,rgba(240,180,41,0.1),rgba(27,86,245,0.05));border:1px solid rgba(240,180,41,0.3);border-radius:14px;padding:20px;text-align:center;margin-bottom:20px;"><div style="font-size:32px;margin-bottom:6px;">&#x1F3C6;</div><div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:26px;letter-spacing:1px;text-transform:uppercase;color:#F0B429;">'
+    +winner.club+'</div><div style="font-size:13px;color:#7C9EFF;margin-top:4px;">&#x1F464; '
+    +winner.player+' &mdash; League Champion</div></div>'
+    :'';
+  var medals=['&#x1F947;','&#x1F948;','&#x1F949;'];
+  var rows=table.map(function(t,i){
+    var rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
+    var gd=(t.gd>0?'+':'')+t.gd;
+    var gdColor=t.gd>0?'#22C55E':t.gd<0?'#E53E6D':'inherit';
+    var formHtml=t.form.slice(-5).map(function(r){return '<span class="form-pill form-'+r+'">'+r+'</span>';}).join('');
+    return '<tr><td><span class="rank-badge '+rc+'">'+( i<3?medals[i]:i+1)+'</span></td>'
+      +'<td><div class="team-cell-sm">'+miniBadge(t.club)+'<div class="cell-club">'+t.club+'</div></div></td>'
+      +'<td><div style="font-size:12px;color:#7C9EFF">&#x1F464; '+t.player+'</div></td>'
+      +'<td>'+t.p+'</td><td>'+t.w+'</td><td>'+t.d+'</td><td>'+t.l+'</td>'
+      +'<td>'+t.gf+'</td><td>'+t.ga+'</td>'
+      +'<td style="color:'+gdColor+'">'+gd+'</td>'
+      +'<td><div style="display:flex;gap:2px">'+formHtml+'</div></td>'
+      +'<td class="pts">'+t.pts+'</td></tr>';
+  }).join('');
+  el.innerHTML=cdHTML+winnerHTML
+    +'<div class="full-table-wrap">'
+    +'<div class="full-table-header" style="color:#7C9EFF;">&#x1F4CB; League Table</div>'
+    +'<table class="full-pl-table"><thead><tr>'
+    +'<th>#</th><th>Club</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Form</th><th>PTS</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+  if(ms>0){
+    clearInterval(window._leagueCdInterval);
+    window._leagueCdInterval=setInterval(function(){
+      var r=S.leagueDeadline-Date.now();
+      var el2=document.getElementById('league-cd');
+      if(!el2){clearInterval(window._leagueCdInterval);return;}
+      if(r<=0){clearInterval(window._leagueCdInterval);renderLeagueTable();return;}
+      var hh=Math.floor(r/3600000),mm=Math.floor((r%3600000)/60000),ss=Math.floor((r%60000)/1000);
+      el2.textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    },1000);
+  }
+}
 function renderGroups(){
+  if(S.tournamentFormat==='league'){renderLeagueTable();return;}
   const el=document.getElementById('groups-container');if(!el)return;
   const gs=getGroupStats();
   const hasTeams=GN.some(g=>(S.groups[g]||[]).length>0);
@@ -1919,6 +2017,27 @@ function trophySVG(){
 
 function renderChampion(){
   const el=document.getElementById('champion-display');if(!el)return;
+  if(S.tournamentFormat==='league'){
+    var ltable=getLeagueTable();
+    var allDone=S.fixtures.filter(function(f){return f.group==='L';}).every(function(f){return f.played;});
+    var expired=S.leagueDeadline&&Date.now()>S.leagueDeadline;
+    var lw=(allDone||expired)&&ltable.length?ltable[0]:null;
+    if(!lw){el.innerHTML='<div class="champ-no-winner">Complete all league matches or wait for the 48hr deadline.</div>';return;}
+    var lurl=CRESTS[lw.club];
+    var lini=lw.club.split(/\s+/).slice(0,2).map(function(w){return w[0].toUpperCase();}).join('');
+    el.innerHTML='<div class="champ-label">Kenya Pro\'s League Champion</div>'
+      +'<div class="champ-trophy-wrap">'+ trophySVG()+'</div>'
+      +'<div class="champ-badge-wrap">'+(lurl?'<img src="'+lurl+'" class="champ-badge">'  :'<div class="champ-badge-fb">'+lini+'</div>')+'</div>'
+      +'<div class="champ-club">'+lw.club+'</div>'
+      +'<div class="champ-player">&#x1F464; '+lw.player+'</div>'
+      +'<div class="champ-stats-row"><div class="champ-stat-item"><div class="champ-stat-val">'+lw.pts+'</div><div class="champ-stat-lbl">Points</div></div>'
+      +'<div class="champ-stat-item"><div class="champ-stat-val">'+lw.w+'</div><div class="champ-stat-lbl">Wins</div></div>'
+      +'<div class="champ-stat-item"><div class="champ-stat-val">'+lw.gf+'</div><div class="champ-stat-lbl">Goals</div></div></div>'
+      +'<div class="champ-divider"></div>'
+      +'<div class="champ-ribbon"><span class="champ-ribbon-text">&#x1F3C6; League Champion &mdash; Season 1 &#x1F3C6;</span></div>'
+      +'<div class="stars">&#x2605; &#x2605; &#x2605;</div>';
+    return;
+  }
   ensureFinal();const fin=S.knockout.final;const champ=fin?koWinner(fin):null;
   if(!champ){el.innerHTML=`<div class="champ-no-winner">Complete the Final to crown a champion.</div>`;return;}
   const player=getPlayer(champ),url=CRESTS[champ];
