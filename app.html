@@ -942,9 +942,9 @@ onSnapshot(DOC, (snap) => {
       S.knockout.semis = Array.isArray(S.knockout.semis) ? S.knockout.semis : [];
       S.round = S.round || 1;
     }
-  } catch(e){ console.error('Parse error:', e); }
+  } catch(e){ console.error('Parse error:', e); setSyncStatus('offline'); return; }
   _firstLoad = false;
-  renderAll();
+  renderActiveTab();
   setSyncStatus('live');
 }, (err) => {
   console.error('Listener error:', err);
@@ -1175,6 +1175,18 @@ function init(){
 function renderAll(){
   [renderTeams,renderFixturesAll,renderGroups,renderResults,renderBracket,renderChampion,renderTable,renderStats,renderAnnouncements,renderMembers,renderCountdown,renderGoldenBoot]
     .forEach(fn=>{try{fn();}catch(e){console.error(fn.name,e);}});
+}
+function renderActiveTab(){
+  // Only re-render visible section + lightweight indicators
+  const active=document.querySelector('.section.active');
+  if(!active)return renderAll();
+  const id=active.id.replace('tab-','');
+  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements,chat:renderChat,members:renderMembers,'golden-boot':renderGoldenBoot,predictions:renderPredictions};
+  try{if(renders[id])renders[id]();}catch(e){console.error(e);}
+  // Always update lightweight indicators
+  try{renderCountdown();}catch(e){}
+  try{updateAdminBadge();}catch(e){}
+  try{updateResultsLockBadge();}catch(e){}
 }
 
 // ════════════════════════════════════
@@ -1746,7 +1758,7 @@ function getLeagueTable(){
   clubs.forEach(function(c){
     stats[c]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0,cs:0,form:[],player:getPlayer(c)};
   });
-  S.fixtures.filter(function(f){return f.group==='L'&&f.played;}).forEach(function(f){
+  S.fixtures.filter(function(f){return f.group==='L'&&f.played&&!f.nullified;}).forEach(function(f){
     var h=stats[f.home],a=stats[f.away];if(!h||!a)return;
     h.p++;a.p++;h.gf+=f.homeGoals;h.ga+=f.awayGoals;a.gf+=f.awayGoals;a.ga+=f.homeGoals;
     if(f.awayGoals===0)h.cs++;if(f.homeGoals===0)a.cs++;
@@ -1761,8 +1773,11 @@ function getLeagueTable(){
 function renderLeagueTable(){
   var el=document.getElementById('groups-container');if(!el)return;
   var table=getLeagueTable();
-  var allPlayed=S.fixtures.filter(function(f){return f.group==='L';}).every(function(f){return f.played;});
   var deadlinePassed=S.leagueDeadline&&Date.now()>S.leagueDeadline;
+  if(deadlinePassed){
+    S.fixtures.filter(function(f){return f.group==='L'&&!f.played;}).forEach(function(f){f.played=true;f.homeGoals=null;f.awayGoals=null;f.nullified=true;});
+  }
+  var allPlayed=S.fixtures.filter(function(f){return f.group==='L';}).every(function(f){return f.played||f.nullified;});
   var winner=(allPlayed||deadlinePassed)&&table.length?table[0]:null;
   var ms=S.leagueDeadline?S.leagueDeadline-Date.now():0;
   var h2=Math.floor(ms/3600000),m2=Math.floor((ms%3600000)/60000),s2=Math.floor((ms%60000)/1000);
@@ -1798,7 +1813,7 @@ function renderLeagueTable(){
     +'<th>#</th><th>Club</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Form</th><th>PTS</th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
   if(ms>0){
-    clearInterval(window._leagueCdInterval);
+    if(window._leagueCdInterval)clearInterval(window._leagueCdInterval);
     window._leagueCdInterval=setInterval(function(){
       var r=S.leagueDeadline-Date.now();
       var el2=document.getElementById('league-cd');
