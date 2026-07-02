@@ -1294,7 +1294,8 @@ function requireAdmin(callback){
   openPin('unlock',callback);
 }
 
-function openPin(mode,callback){
+async function openPin(mode,callback){
+  await window._loadPinHash();
   const safeMode=(mode==='setup'||mode==='setup-confirm')?'unlock':mode;
   PIN._setMode(safeMode); PIN._setBuffer(''); PIN._setFirst('');
   PIN._setCB(callback||null); PIN._setFail(0);
@@ -2878,6 +2879,7 @@ setTimeout(updateNotifBtn, 500);
 </body>
 </html>
 <!-- build Sun Jun 21 12:52:14 UTC 2026 -->
+
 
 
 
