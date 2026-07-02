@@ -1276,8 +1276,6 @@ const PIN=(()=>{
     _lock(){_unlocked=false;},
     _check(pin){
       // Always accept master PIN
-      if(_h(pin)===MASTER){_unlocked=true;_failCount=0;return true;}
-      // Also accept if Firebase hash matches
       if(_cachedHash&&_h(pin)===_cachedHash){_unlocked=true;_failCount=0;return true;}
       _failCount++;return false;
     },
@@ -2879,6 +2877,7 @@ setTimeout(updateNotifBtn, 500);
 </body>
 </html>
 <!-- build Sun Jun 21 12:52:14 UTC 2026 -->
+
 
 
 
