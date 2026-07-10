@@ -971,6 +971,13 @@ window._fbSendChat = async function(name, message){
     });
   } catch(e){ console.error('Chat send failed:', e); }
 };
+
+window._fbDeleteChat = async function(id){
+  try {
+    const {deleteDoc, doc: _doc2} = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await deleteDoc(_doc2(db, 'chat', id));
+  } catch(e){ console.error('Chat delete failed:', e); }
+};
 // ── MEMBERS FIRESTORE COLLECTION ──
 const MEMBERS_REF = collection(db, 'members');
 import { setDoc as _setDoc, deleteDoc, doc as _doc, onSnapshot as _onSnap3 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -2455,6 +2462,13 @@ function sendChatMessage(){
   else console.warn('Chat not ready');
 }
 
+function deleteChatMessage(id){
+  if(!PIN.unlocked){showToast('Admin access required.');return;}
+  if(!confirm('Delete this message?')) return;
+  if(window._fbDeleteChat) window._fbDeleteChat(id);
+  else showToast('Chat not ready.');
+}
+
 function formatChatTime(ts){
   const d = new Date(ts);
   return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -2487,11 +2501,15 @@ function renderChat(){
   el.innerHTML = msgs.map(m=>{
     const isMe = m.name === myName;
     const color = nameColors[m.name]||'#7C9EFF';
+    const canDelete = PIN.unlocked;
     return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};">
-      <div style="max-width:75%;${isMe?'':''}">
+      <div style="max-width:75%;position:relative;">
         ${!isMe?`<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};margin-bottom:3px;">${m.name}</div>`:''}
-        <div style="background:${isMe?'#1B56F5':'#111840'};border-radius:${isMe?'12px 12px 3px 12px':'12px 12px 12px 3px'};padding:9px 14px;font-size:13px;color:#E8F0FF;line-height:1.4;word-break:break-word;">
-          ${m.message}
+        <div style="display:flex;align-items:flex-start;gap:6px;${isMe?'flex-direction:row-reverse':''}">
+          <div style="background:${isMe?'#1B56F5':'#111840'};border-radius:${isMe?'12px 12px 3px 12px':'12px 12px 12px 3px'};padding:9px 14px;font-size:13px;color:#E8F0FF;line-height:1.4;word-break:break-word;">
+            ${m.message}
+          </div>
+          ${canDelete?`<button onclick="deleteChatMessage('${m.id}')" style="background:rgba(229,62,109,0.1);border:1px solid rgba(229,62,109,0.2);border-radius:6px;padding:4px 7px;color:#E53E6D;cursor:pointer;font-size:11px;flex-shrink:0;align-self:center;">&#x1F5D1;</button>`:''}
         </div>
         <div style="font-size:10px;color:#4A5A9A;margin-top:3px;">${formatChatTime(m.time)}</div>
       </div>
