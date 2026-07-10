@@ -825,7 +825,7 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCtZHFhuy768Rp4trdsAf9lf3OeakbhliY",
@@ -974,8 +974,7 @@ window._fbSendChat = async function(name, message){
 
 window._fbDeleteChat = async function(id){
   try {
-    const {deleteDoc, doc: _doc2} = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    await deleteDoc(_doc2(db, 'chat', id));
+    await deleteDoc(doc(db, 'chat', id));
   } catch(e){ console.error('Chat delete failed:', e); }
 };
 // ── MEMBERS FIRESTORE COLLECTION ──
