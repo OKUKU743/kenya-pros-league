@@ -944,7 +944,7 @@ onSnapshot(DOC, (snap) => {
     }
   } catch(e){ console.error('Parse error:', e); setSyncStatus('offline'); return; }
   _firstLoad = false;
-  renderActiveTab();
+  renderAll();
   setSyncStatus('live');
 }, (err) => {
   console.error('Listener error:', err);
