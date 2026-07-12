@@ -1,28 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     match /tournament/state {
       allow read: if true;
       allow write: if true;
     }
-
     match /tournament/pin {
       allow read, write: if true;
     }
-
     match /chat/{message} {
       allow read: if true;
       allow write: if request.resource.data.message is string
                    && request.resource.data.message.size() < 500;
     }
-
     match /members/{memberId} {
       allow read: if true;
       allow write: if true;
     }
-
     match /announcements/{ann} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /seasons/{seasonId} {
       allow read: if true;
       allow write: if true;
     }

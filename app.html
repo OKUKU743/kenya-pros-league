@@ -476,6 +476,7 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
     <button class="tab" onclick="switchTab('announcements',this)">News</button>
     <button class="tab" onclick="switchTab('chat',this)">Chat</button>
     <button class="tab" onclick="switchTab('predictions',this)">&#x1F3AF; Predict</button>
+    <button class="tab" onclick="switchTab('history',this)">&#x1F4DC; History</button>
     <span id="sync-status" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7C9EFF;padding:5px 10px;border:1px solid rgba(27,86,245,0.2);border-radius:6px;">⏳ Connecting...</span>
     <button id="notif-btn" onclick="requestNotifications()" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#7C9EFF;padding:5px 12px;border:1px solid rgba(27,86,245,0.2);border-radius:6px;background:transparent;cursor:pointer;">&#x1F515; Notify</button>
     <button class="admin-badge locked" id="admin-badge" onclick="adminBadgeClick()">&#x1F512; Admin</button>
@@ -548,6 +549,7 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
       <div class="section-title">Teams <span id="team-count"></span></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-secondary" onclick="requireAdmin(generateGroups)">Generate Groups &amp; Fixtures</button>
+        <button class="btn btn-gold" onclick="requireAdmin(endSeason)">&#x1F3C6; End Season</button>
         <button class="btn btn-danger" onclick="requireAdmin(clearAll)">Reset All</button>
       </div>
     </div>
@@ -796,6 +798,13 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
     <div id="predictions-fixtures"></div>
   </div>
 
+  <!-- HISTORY -->
+  <div id="tab-history" class="section">
+    <div class="section-header"><div class="section-title">&#x1F4DC; Season <span>History</span></div></div>
+    <div class="info-bar">Every completed season — archived forever. The legacy of Kenya Pro's League.</div>
+    <div id="history-container"></div>
+  </div>
+
   <!-- ANNOUNCEMENTS -->
   <div id="tab-announcements" class="section">
     <div class="section-header"><div class="section-title">&#x1F4E2; <span>Announcements</span></div></div>
@@ -825,7 +834,7 @@ header{background:rgba(6,9,28,0.97) !important;border-bottom:1px solid rgba(27,8
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc, deleteDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCtZHFhuy768Rp4trdsAf9lf3OeakbhliY",
@@ -970,6 +979,26 @@ window._fbSendChat = async function(name, message){
       time: Date.now()
     });
   } catch(e){ console.error('Chat send failed:', e); }
+};
+
+// ── SEASONS FIRESTORE ──
+const SEASONS_REF = collection(db, 'seasons');
+
+window._fbSaveSeason = async function(seasonNum, data){
+  try{
+    await setDoc(doc(db,'seasons','season_'+seasonNum), data);
+  }catch(e){console.error('Season save failed:',e);throw e;}
+};
+
+window._fbGetSeasons = function(callback){
+  getDocs(SEASONS_REF).then(function(snap){
+    var seasons=[];
+    snap.forEach(function(d){seasons.push(d.data());});
+    callback(seasons);
+  }).catch(function(e){
+    console.error('Seasons load failed:',e);
+    callback([]);
+  });
 };
 
 window._fbDeleteChat = async function(id){
@@ -1187,7 +1216,7 @@ function renderActiveTab(){
   const active=document.querySelector('.section.active');
   if(!active)return renderAll();
   const id=active.id.replace('tab-','');
-  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements,chat:renderChat,members:renderMembers,'golden-boot':renderGoldenBoot,predictions:renderPredictions};
+  const renders={groups:renderGroups,bracket:renderBracket,champion:renderChampion,fixtures:renderFixturesAll,results:renderResults,table:renderTable,stats:renderStats,teams:renderTeams,announcements:renderAnnouncements,chat:renderChat,members:renderMembers,'golden-boot':renderGoldenBoot,predictions:renderPredictions,history:renderHistory};
   try{if(renders[id])renders[id]();}catch(e){console.error(e);}
   // Always update lightweight indicators
   try{renderCountdown();}catch(e){}
@@ -2843,6 +2872,135 @@ function submitPrediction(fid){
   save();
   showToast(name+' prediction saved: '+home+'-'+away);
   renderPredictions();
+}
+
+// ── SEASON ARCHIVE ──
+async function endSeason(){
+  if(!confirm('End Season '+( (S.seasonNumber||1))+' and archive all data? This cannot be undone.')) return;
+  if(!confirm('Are you sure? Members will be reset and a new season will begin.')) return;
+
+  // Get champion
+  var champion = null;
+  var championPlayer = null;
+  if(S.tournamentFormat==='league'){
+    var lt=getLeagueTable();
+    if(lt.length){champion=lt[0].club;championPlayer=lt[0].player;}
+  } else {
+    var fin=S.knockout&&S.knockout.final;
+    if(fin&&fin.played){
+      champion=fin.homeGoals>fin.awayGoals?fin.home:fin.awayGoals>fin.homeGoals?fin.away:(fin.penaltyWinner||null);
+      if(champion) championPlayer=getPlayer(champion);
+    }
+  }
+
+  // Get top scorer
+  var topScorer=null;
+  if(S.goalscorers){
+    var tally={};
+    S.fixtures.filter(function(f){return f.played&&!f.nullified;}).forEach(function(f){
+      var logs=S.goalscorers[f.id];if(!logs)return;
+      var all=[].concat((logs.home||[]).map(function(n){return{name:n,club:f.home};}),(logs.away||[]).map(function(n){return{name:n,club:f.away};}));
+      all.forEach(function(g){
+        if(!g.name||g.name==='Unknown')return;
+        var k=g.name.toLowerCase();
+        if(!tally[k])tally[k]={name:g.name,club:g.club,goals:0};
+        tally[k].goals++;
+      });
+    });
+    var arr=Object.values(tally).sort(function(a,b){return b.goals-a.goals;});
+    if(arr.length)topScorer=arr[0];
+  }
+
+  // Build archive record
+  var seasonNum = S.seasonNumber||1;
+  var archiveData = {
+    seasonNumber: seasonNum,
+    format: S.tournamentFormat||'championship',
+    champion: champion,
+    championPlayer: championPlayer,
+    topScorer: topScorer?topScorer.name:null,
+    topScorerClub: topScorer?topScorer.club:null,
+    topScorerGoals: topScorer?topScorer.goals:0,
+    teams: S.teams||[],
+    endedAt: new Date().toISOString(),
+    totalMatches: (S.fixtures||[]).filter(function(f){return f.played&&!f.nullified;}).length,
+    totalGoals: (S.fixtures||[]).filter(function(f){return f.played&&!f.nullified;}).reduce(function(a,f){return a+(f.homeGoals||0)+(f.awayGoals||0);},0),
+  };
+
+  // Save to Firestore seasons collection
+  try {
+    if(window._fbSaveSeason) await window._fbSaveSeason(seasonNum, archiveData);
+    showToast('Season '+seasonNum+' archived successfully!');
+  } catch(e){
+    console.error('Archive failed:',e);
+    showToast('Archive failed - check console.');
+    return;
+  }
+
+  // Reset tournament state for new season
+  S = {
+    teams: [],
+    groups: {},
+    fixtures: [],
+    knockout: {semis:[], final:null},
+    round: 1,
+    ties: {},
+    announcements: [],
+    goalscorers: {},
+    predictions: {},
+    seasonNumber: seasonNum + 1,
+    tournamentFormat: null,
+  };
+  save();
+  renderAll();
+  showToast('Season '+(seasonNum+1)+' started! Add teams to begin.');
+  switchTab('teams', document.querySelectorAll('.tab')[0]);
+}
+
+function renderHistory(){
+  const el = document.getElementById('history-container');
+  if(!el) return;
+  el.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:20px 0;">Loading history...</div>';
+  if(window._fbGetSeasons) window._fbGetSeasons(function(seasons){
+    if(!seasons||!seasons.length){
+      el.innerHTML = '<div class="empty-state"><div class="big">&#x1F4DC;</div><p>No completed seasons yet.</p><p>Complete a season and click <strong>End Season</strong> to archive it here.</p></div>';
+      return;
+    }
+    seasons.sort(function(a,b){return b.seasonNumber-a.seasonNumber;});
+    var medals=['&#x1F947;','&#x1F948;','&#x1F949;'];
+    var html2 = '<div style="display:grid;gap:20px;">';
+    seasons.forEach(function(s){
+      var url = s.champion?CRESTS[s.champion]:null;
+      var ini = s.champion?s.champion.split(/\s+/).slice(0,2).map(function(w){return w[0].toUpperCase();}).join(''):'?';
+      html2 += '<div style="background:var(--card);border:1px solid rgba(27,86,245,0.15);border-radius:16px;overflow:hidden;">';
+      html2 += '<div style="background:linear-gradient(135deg,rgba(240,180,41,0.1),rgba(27,86,245,0.05));border-bottom:1px solid rgba(240,180,41,0.2);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">';
+      html2 += '<div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:22px;letter-spacing:1px;text-transform:uppercase;color:#F0B429;">&#x1F3C6; Season '+s.seasonNumber+'</div>';
+      html2 += '<div style="font-size:11px;color:var(--dim);letter-spacing:1px;">'+new Date(s.endedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+'</div>';
+      html2 += '</div>';
+      html2 += '<div style="padding:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">';
+      if(s.champion){
+        html2 += '<div style="flex-shrink:0;">'+(url?'<img src="'+url+'" style="width:64px;height:64px;object-fit:contain;border-radius:10px;">':'<div style="width:64px;height:64px;border-radius:50%;background:#111840;display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:24px;color:#7C9EFF;">'+ini+'</div>')+'</div>';
+        html2 += '<div style="flex:1;"><div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:28px;letter-spacing:1px;text-transform:uppercase;color:#F0B429;">'+s.champion+'</div>';
+        html2 += '<div style="font-size:13px;color:#7C9EFF;margin-top:2px;">&#x1F464; '+s.championPlayer+' &mdash; Champion</div></div>';
+      } else {
+        html2 += '<div style="color:var(--dim);font-size:14px;">No champion recorded</div>';
+      }
+      html2 += '</div>';
+      html2 += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:rgba(27,86,245,0.1);border-top:1px solid rgba(27,86,245,0.1);">';
+      var stats2=[
+        {icon:'&#x26BD;',label:'Matches',val:s.totalMatches||0},
+        {icon:'&#x1F525;',label:'Goals',val:s.totalGoals||0},
+        {icon:'&#x1F465;',label:'Teams',val:(s.teams||[]).length},
+        {icon:'&#x1F45F;',label:'Top Scorer',val:s.topScorer||(s.topScorerGoals?s.topScorerGoals+' goals':'—')},
+      ];
+      stats2.forEach(function(st){
+        html2 += '<div style="background:var(--card);padding:14px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">'+st.icon+'</div><div style="font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:18px;color:#E8F0FF;">'+st.val+'</div><div style="font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;">'+st.label+'</div></div>';
+      });
+      html2 += '</div></div>';
+    });
+    html2 += '</div>';
+    el.innerHTML = html2;
+  });
 }
 
 // ── PUSH NOTIFICATIONS ──
